@@ -2,6 +2,12 @@
 
 for more infomation about `Maybe`, `Just` and `Nothing`, see [error-null-handle](https://github.com/Immortal1206/error-null-handle)
 
+### install
+
+```shell
+npm install @immortal/iter.js
+```
+
 ## API reference
 
   * <a href="#chain">chain</a>
