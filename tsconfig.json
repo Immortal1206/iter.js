@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "noEmit": false,
+    "target": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "sourceMap": true,
+    "declaration": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "stripInternal": true,
+    "skipLibCheck": true,
+  },
+  "include": [
+    "./src"
+  ],
+}
