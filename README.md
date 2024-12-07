@@ -1,5 +1,7 @@
 # iterator that supports lazy evaluation and chain methods
 
+for more infomation about `Maybe`, `Just` and `Nothing`, see [error-null-handle](https://github.com/Immortal1206/error-null-handle)
+
 ## API reference
 
   * <a href="#chain">chain</a>
