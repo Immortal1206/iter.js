@@ -1,5 +1,5 @@
 {
-  "name": "@immortal/iter.js",
+  "name": "lazy-iter.js",
   "version": "0.1.0",
   "description": "iterator that supports lazy evaluation and chain methods",
   "main": "./dist/lib/index.js",

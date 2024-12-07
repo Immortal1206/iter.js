@@ -5,7 +5,7 @@ for more infomation about `Maybe`, `Just` and `Nothing`, see [error-null-handle]
 ### install
 
 ```shell
-npm install @immortal/iter.js
+npm install lazy-iter.js
 ```
 
 ## API reference
