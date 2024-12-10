@@ -1,6 +1,14 @@
 import { just, nothing } from 'error-null-handle'
 import { iter, repeat } from '../src/index'
 
+test('iter Symbol.iterator', () => {
+  const i = iter([1, 2, 3])[Symbol.iterator]()
+  expect(i.next()).toEqual({ value: 1, done: false })
+  expect(i.next()).toEqual({ value: 2, done: false })
+  expect(i.next()).toEqual({ value: 3, done: false })
+  expect(i.next()).toEqual({ value: undefined, done: true })
+})
+
 test('iter toArray', () => {
   expect(iter([1, 2, 3]).toArray()).toEqual([1, 2, 3])
 })

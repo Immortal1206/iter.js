@@ -1,5 +1,5 @@
 import { isMaybe, just, nothing, type Maybe } from 'error-null-handle'
-import { isIter, isIterable, isNullUndefined } from './utils'
+import { assertNonNegative, isIter, isIterable, isNullUndefined } from './utils'
 
 interface IterMethods<T> {
   //#region adapter methods, lazy evaluation
@@ -162,6 +162,12 @@ interface IterMethods<T> {
    */
   count(): number
   /**
+   * Executes the given function once for each element in the `Iter`.
+   * 
+   * @param fn A function that takes a value of type `T` and returns nothing.
+   */
+  each(fn: (value: T) => void): void
+  /**
    * Tests if the current `Iter` is equal to the given `Iter`.
    * Two `Iter`s are considered equal if they contain the same elements(tests with `Object.is`) in the same order.
    * 
@@ -204,12 +210,6 @@ interface IterMethods<T> {
    * @returns The index of the first element that satisfies the predicate, if any, or `Nothing` if no element satisfies the predicate.
    */
   findIndex(fn: (value: T) => boolean): Maybe<number>
-  /**
-   * Executes the given function once for each element in the `Iter`.
-   * 
-   * @param fn A function that takes a value of type `T` and returns nothing.
-   */
-  each(fn: (value: T) => void): void
   /**
    * Returns the last value in the `Iter`, wrapped in `Just<T>`.
    * If the `Iter` is empty, returns `Nothing`.
@@ -451,6 +451,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   skip(n: number): Iter<T> {
+    assertNonNegative(n, 'skip')
     const gen = this.#generator
     let i = 0
     return new Iter(function* () {
@@ -481,6 +482,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   take(n: number): Iter<T> {
+    assertNonNegative(n, 'take')
     const gen = this.#generator()
     return new Iter(function* () {
       for (let i = 0; i < n; i++) {
@@ -530,6 +532,12 @@ export class Iter<T> implements IterMethods<T> {
     return count
   }
 
+  each(fn: (value: T) => void): void {
+    for (const value of this.#generator()) {
+      fn(value)
+    }
+  }
+
   eq(other: Iter<T>): boolean {
     return this.eqBy(other, Object.is)
   }
@@ -573,12 +581,6 @@ export class Iter<T> implements IterMethods<T> {
     }
   }
 
-  each(fn: (value: T) => void): void {
-    for (const value of this.#generator()) {
-      fn(value)
-    }
-  }
-
   last(): Maybe<T> {
     const iter = this.#generator()
     let res = nothing<T>()
@@ -590,6 +592,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   nth(n: number): Maybe<T> {
+    assertNonNegative(n, 'nth')
     const iter = this.#generator()
     let i = 0
     while (true) {
