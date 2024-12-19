@@ -43,6 +43,9 @@ npm install lazy-iter.js
   * <a href="#take">take</a>
   * <a href="#takeWhile">takeWhile</a>
   * <a href="#toArray">toArray</a>
+  * <a href="#toMap">toMap</a>
+  * <a href="#toObject">toObject</a>
+  * <a href="#toSet">toSet</a>
   * <a href="#zip">zip</a>
 
 ### API to create `Iter` instance
@@ -61,7 +64,7 @@ npm install lazy-iter.js
 
   Test if a variable is an `Iter` instance.
 
-### `Iter\<T>` instance methods
+### `Iter<T>` instance methods
 
 #### lazy evaluation methods
 
@@ -214,6 +217,25 @@ npm install lazy-iter.js
 * <span id="toArray">toArray</span> :: () => T[]
 
   Returns an array containing all elements of the `Iter`.
+
+* <span id="toMap">toMap</span> :: \<K, V>(toEntry: (value: T) => [K, V]): Map\<K, V>
+
+  Converts an `Iter` to a `Map`.<br>
+  The provided function `toEntry` takes a value of type `T` and returns a tuple of type `[K, V]`.<br>
+  The resulting `Map` will have the resulting keys of type `K` and the resulting values of type `V`.<br>
+
+* <span id="toObject">toObject</span> :: \<K, V>(toEntry: (value: T) => [K, V]): Record\<K, V>
+
+  Returns a new object, mapping each element of the `Iter` to its corresponding entry in the object.<br>
+  The provided function `toEntry` takes a value of type `T` and returns a tuple of type `[K, V]`.<br>
+  The resulting `Object` will have the resulting keys of type `K` and the resulting values of type `V`.<br>
+
+* <span id="toSet">toSet</span> :: () => Set\<T>
+
+  Converts the `Iter` to a `Set`.<br>
+  Note that the order of the elements in the resulting `Set` is not guaranteed
+  to be the same as the order of elements in the original `Iter`,<br>
+  because the `Iter` might contain duplicates.<br>
 
 #### eager evaluate values and return lazy `Iter`
 

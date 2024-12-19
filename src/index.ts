@@ -245,6 +245,31 @@ interface IterMethods<T> {
    * @returns An array containing all elements of the `Iter`.
    */
   toArray(): T[]
+  /**
+   * Converts an `Iter` to a `Map`.
+   * The provided function `toEntry` takes a value of type `T` and returns a tuple of type `[K, V]`.
+   * The resulting `Map` will have the resulting keys of type `K` and the resulting values of type `V`.
+   * @param toEntry A function that takes a value of type `T` and returns a tuple of type `[K, V]`.
+   * @returns A `Map` containing the entries from the `Iter` converted using the given function.
+   */
+  toMap<K, V>(toEntry: (value: T) => [K, V]): Map<K, V>
+  /**
+   * Returns a new object, mapping each element of the `Iter` to its corresponding entry in the object.
+   * The provided function `toEntry` takes a value of type `T` and returns a tuple of type `[K, V]`.
+   * The resulting `Object` will have the resulting keys of type `K` and the resulting values of type `V`.
+   * @param toEntry A function that takes a value of type `T` and returns a tuple of type `[K, V]`.
+   * @returns An object containing the entries from the `Iter` converted using the given function.
+   */
+  toObject<K extends PropertyKey, V>(toEntry: (value: T) => [K, V]): Record<K, V>
+  /**
+   * Converts the `Iter` to a `Set`.
+   * Note that the order of the elements in the resulting `Set` is not guaranteed
+   * to be the same as the order of elements in the original `Iter`,
+   * because the `Iter` might contain duplicates.
+   *
+   * @returns A `Set` containing all elements of the `Iter`.
+   */
+  toSet(): Set<T>
   //#endregion
 
   /**
@@ -257,6 +282,7 @@ interface IterMethods<T> {
   rev(): Iter<T>
 }
 
+type KeyValueSelector<T, K, V> = (item: T) => { key: K, value: V }
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
 
@@ -620,6 +646,18 @@ export class Iter<T> implements IterMethods<T> {
 
   toArray(): T[] {
     return [...this.#generator()]
+  }
+
+  toMap<K, V>(toEntry: (value: T) => [K, V]): Map<K, V> {
+    return new Map(this.map(toEntry))
+  }
+
+  toObject<K extends PropertyKey, V>(toEntry: (value: T) => [K, V]): Record<K, V> {
+    return Object.fromEntries(this.map(toEntry)) as Record<K, V>
+  }
+
+  toSet(): Set<T> {
+    return new Set(this)
   }
   // #endregion
 

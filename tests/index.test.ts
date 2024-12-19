@@ -222,13 +222,6 @@ test('iter partition', () => {
   expect(iter([]).partition(() => true).map(i => i.toArray())).toEqual([[], []])
 })
 
-test('iter some', () => {
-  expect(iter([1, 2, 3]).some(value => value === 2)).toEqual(true)
-  expect(iter([1, 2, 3]).some(value => value > 4)).toEqual(false)
-  expect(iter([]).some(() => true)).toEqual(false)
-  expect(iter([]).some(() => false)).toEqual(false)
-})
-
 test('iter reduce', () => {
   expect(iter([1, 2, 3]).reduce((acc, value) => acc + value, 0)).toEqual(6)
   expect(iter([]).reduce((acc, value) => acc + value, 0)).toEqual(0)
@@ -237,4 +230,26 @@ test('iter reduce', () => {
 test('iter rev', () => {
   expect(iter([1, 2, 3]).rev().toArray()).toEqual([3, 2, 1])
   expect(iter([]).rev().toArray()).toEqual([])
+})
+
+test('iter some', () => {
+  expect(iter([1, 2, 3]).some(value => value === 2)).toEqual(true)
+  expect(iter([1, 2, 3]).some(value => value > 4)).toEqual(false)
+  expect(iter([]).some(() => true)).toEqual(false)
+  expect(iter([]).some(() => false)).toEqual(false)
+})
+
+test('iter toMap', () => {
+  expect(iter([1, 2, 3]).toMap(value => [value, value * 2])).toEqual(new Map([[1, 2], [2, 4], [3, 6]]))
+  expect(iter([]).toMap(() => [1, 2])).toEqual(new Map())
+})
+
+test('iter toObject', () => {
+  expect(iter([1, 2, 3]).toObject(value => [value, value * 2])).toEqual({ 1: 2, 2: 4, 3: 6 })
+  expect(iter([]).toObject(() => [1, 2])).toEqual({})
+})
+
+test('iter toSet', () => {
+  expect(iter([1, 2, 3]).toSet()).toEqual(new Set([1, 2, 3]))
+  expect(iter([]).toSet()).toEqual(new Set())
 })
