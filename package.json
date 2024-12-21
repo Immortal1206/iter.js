@@ -16,6 +16,10 @@
       "import": "./dist/es/index.js"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Immortal1206/iter.js.git"
+  },
   "keywords": [
     "iterator",
     "lazy evaluation",

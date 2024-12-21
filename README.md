@@ -68,11 +68,11 @@ npm install lazy-iter.js
 
 #### lazy evaluation methods
 
-* <span id="chain">chain</span> :: (other: Iter\<T> | Iterable\<T>) => Iter\<T>
+* <span id="chain">chain</span> :: (other: Iterable\<T>) => Iter\<T>
 
   Concatenates the current `Iter` with the given iterable.
 
-* <span id="concat">concat</span> :: (...others: (Iter\<T> | Iterable\<T>)[]) => Iter\<T>
+* <span id="concat">concat</span> :: (...others: Iterable\<T>[]) => Iter\<T>
 
   Concatenates the given iterators to this `Iter`.
 
@@ -95,7 +95,7 @@ npm install lazy-iter.js
   The resulting iterator will only contain the values where the filter function returns a non-`null`/`undefined` value.<br>
   If the filter function returns a `Maybe`, the resulting iterator will only contain the values where the filter function returns a `Just` value.<br>
 
-* <span id="flatMap">flatMap</span> :: \<U>(fn: (value: T) => Iter\<U> | Iterable\<U>) => Iter\<U>
+* <span id="flatMap">flatMap</span> :: \<U>(fn: (value: T) => Iterable\<U>) => Iter\<U>
 
   Maps each value of the current `Iter` to an `Iter` using the given function and flattens the result.
 
@@ -156,7 +156,7 @@ npm install lazy-iter.js
   Takes elements from the `Iter` as long as the given function returns true.<br>
   Once the function returns false, the iteration stops.
 
-* <span id="zip">zip</span> :: \<U>(other: Iter\<U> | Iterable\<U>) => Iter<[T, U]>
+* <span id="zip">zip</span> :: \<U>(other: Iterable\<U>) => Iter<[T, U]>
 
   Zip this `Iter` with another iterator.<br>
   This method takes another iterator and returns a new `Iter` that yields tuples of elements from both iterators.<br>
@@ -242,5 +242,6 @@ npm install lazy-iter.js
 * <span id="rev">rev</span> :: () => Iter\<T>
 
   Reverses an `Iter`'s direction.<br>
-  Usually, `Iter`s iterate from left to right. After using rev(), an `Iter` will instead iterate from right to left.<br>
+  Usually, `Iter`s iterate from left to right.<br>
+  After using rev(), an `Iter` will instead iterate from right to left.<br>
   This is only possible if the `Iter` has an end.
