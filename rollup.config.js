@@ -16,6 +16,7 @@ export default {
       sourcemap: true,
     }
   ],
+  external: ['tslib'],
   plugins: [
     typescript({
       sourcemap: true,
