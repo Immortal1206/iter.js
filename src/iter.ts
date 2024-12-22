@@ -1,4 +1,5 @@
 import { isMaybe, just, nothing, type Maybe } from 'error-null-handle'
+import { __classPrivateFieldGet, __classPrivateFieldSet } from 'tslib'
 
 import {
   assertInteger,
