@@ -1,16 +1,28 @@
 import { just, nothing } from 'error-null-handle'
-import { iter, repeat } from '../src/index'
+import iter, { repeat, type Iter } from '../src/index'
 
 test('iter Symbol.iterator', () => {
-  const i = iter([1, 2, 3])[Symbol.iterator]()
-  expect(i.next()).toEqual({ value: 1, done: false })
-  expect(i.next()).toEqual({ value: 2, done: false })
-  expect(i.next()).toEqual({ value: 3, done: false })
-  expect(i.next()).toEqual({ value: undefined, done: true })
+  const it1 = iter([1, 2, 3])[Symbol.iterator]()
+  expect(it1.next()).toEqual({ value: 1, done: false })
+  expect(it1.next()).toEqual({ value: 2, done: false })
+  expect(it1.next()).toEqual({ value: 3, done: false })
+  expect(it1.next()).toEqual({ value: undefined, done: true })
+
+  const it2 = iter()[Symbol.iterator]()
+  expect(it2.next()).toEqual({ value: undefined, done: true })
+
+  const it3 = iter(1)[Symbol.iterator]()
+  expect(it3.next()).toEqual({ value: 1, done: false })
+  expect(it3.next()).toEqual({ value: undefined, done: true })
 })
 
 test('iter toArray', () => {
   expect(iter([1, 2, 3]).toArray()).toEqual([1, 2, 3])
+})
+
+test('iter append', () => {
+  expect(iter([1, 2, 3]).append(4).toArray()).toEqual([1, 2, 3, 4])
+  expect(iter().append(1).toArray()).toEqual([1])
 })
 
 test('iter take', () => {
@@ -24,9 +36,13 @@ test('iter chain', () => {
   expect(iter([1, 2, 3]).chain(iter([4, 5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
 })
 
-test('iter repeat', () => {
-  expect(repeat(1).take(5).toArray()).toEqual([1, 1, 1, 1, 1])
-  expect(repeat(() => [1, 2, 3]).take(5).toArray()).toEqual([[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]])
+test('iter chunks', () => {
+  expect(iter([1, 2, 3]).chunks(2).toArray().map(chunk => chunk.toArray())).toEqual([[1, 2], [3]])
+  expect(iter([1, 2, 3]).chunks(5).toArray().map(chunk => chunk.toArray())).toEqual([[1, 2, 3]])
+  expect(iter([]).chunks(1).toArray()).toEqual([])
+  expect(() => iter().chunks(0)).toThrow('Expected non-zero in chunks, but got 0!')
+  expect(() => iter().chunks(-1)).toThrow('Expected non-negative in chunks, but got -1!')
+  expect(() => iter([1, 2, 3]).chunks(1.1)).toThrow('Expected integer in chunks, but got 1.1!')
 })
 
 test('iter concat', () => {
@@ -36,6 +52,7 @@ test('iter concat', () => {
 })
 
 test('iter cycle', () => {
+  expect(iter([1, 2, 3]).cycle().take(2).toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).cycle().take(5).toArray()).toEqual([1, 2, 3, 1, 2])
   expect(iter([1, 2, 3]).cycle().take(10).toArray()).toEqual([1, 2, 3, 1, 2, 3, 1, 2, 3, 1])
 })
@@ -88,16 +105,73 @@ test('iter inspect', () => {
   logSpy.mockRestore()
 })
 
-test('iter intersperce', () => {
-  expect(iter([1, 2, 3]).intersperce(0).toArray()).toEqual([1, 0, 2, 0, 3])
-  expect(iter<number>([]).intersperce(0).toArray()).toEqual([])
-  expect(iter([1]).intersperce(0).toArray()).toEqual([1])
+test('iter interleave', () => {
+  expect(iter([1, 2, 3]).interleave([4, 5, 6, 7]).toArray()).toEqual([1, 4, 2, 5, 3, 6, 7])
+  expect(iter([1, 2, 3]).interleave([4, 5]).toArray()).toEqual([1, 4, 2, 5, 3])
+  expect(iter([1, 2, 3]).interleave([4, 5, 6]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
+  expect(iter([1, 2, 3]).interleave([]).toArray()).toEqual([1, 2, 3])
+  expect(iter<number>().interleave([4, 5, 6]).toArray()).toEqual([4, 5, 6])
+})
+
+test('iter interleaveShortest', () => {
+  expect(iter([1, 2, 3]).interleaveShortest([4, 5, 6, 7, 8]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
+  expect(iter([1, 2, 3, 6]).interleaveShortest([4, 5]).toArray()).toEqual([1, 4, 2, 5])
+  expect(iter([1, 2, 3]).interleaveShortest([4, 5, 6]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
+  expect(iter([1, 2, 3]).interleaveShortest([]).toArray()).toEqual([])
+  expect(iter<number>().interleaveShortest([4, 5, 6]).toArray()).toEqual([])
+})
+
+test('iter intersperse', () => {
+  expect(iter([1, 2, 3]).intersperse(0).toArray()).toEqual([1, 0, 2, 0, 3])
+  expect(iter<number>([]).intersperse(0).toArray()).toEqual([])
+  expect(iter([1]).intersperse(0).toArray()).toEqual([1])
 })
 
 test('iter map', () => {
   expect(iter([1, 2, 3]).map(value => value * 2).toArray()).toEqual([2, 4, 6])
   expect(iter([1, 2, 3]).map(() => 0).toArray()).toEqual([0, 0, 0])
   expect(iter([]).map(() => 0).toArray()).toEqual([])
+})
+
+test('iter merge', () => {
+  expect(iter([1, 2, 3]).merge([4, 5, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 2, 3]).merge(iter([4, 5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 3, 5]).merge([2, 4, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 2, 3]).merge([]).toArray()).toEqual([1, 2, 3])
+  expect(iter<number>().merge([4, 5, 6]).toArray()).toEqual([4, 5, 6])
+  expect(iter([1, 1, 1]).merge([2, 2]).toArray()).toEqual([1, 1, 1, 2, 2])
+})
+
+test('iter mergeBy', () => {
+  expect(iter([1, 2, 3]).mergeBy([4, 5, 6], (a, b) => a < b).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 3, 5]).mergeBy([2, 4, 6], (a, b) => a < b).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 2, 3]).mergeBy([], (a, b) => a < b).toArray()).toEqual([1, 2, 3])
+  expect(iter<number>().mergeBy([4, 5, 6], (a, b) => a < b).toArray()).toEqual([4, 5, 6])
+  expect(iter([1, 1, 1]).mergeBy([2, 2], (a, b) => a < b).toArray()).toEqual([1, 1, 1, 2, 2])
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+  ]).mergeBy([
+    { a: 1, b: 2 },
+    { a: 1, b: 3 },
+    { a: 3, b: 3 },
+  ], (a, b) => a.a < b.a).toArray()).toEqual([
+    { a: 1, b: 2 },
+    { a: 1, b: 3 },
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+    { a: 3, b: 3 },
+  ])
+})
+
+test('iter prepend', () => {
+  expect(iter([1, 2, 3]).prepend(0).toArray()).toEqual([0, 1, 2, 3])
+  expect(iter().prepend(0).toArray()).toEqual([0])
+})
+
+test('iter repeat', () => {
+  expect(repeat(1).take(5).toArray()).toEqual([1, 1, 1, 1, 1])
+  expect(repeat(() => [1, 2, 3]).take(5).toArray()).toEqual([[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]])
 })
 
 test('iter scan', () => {
@@ -133,12 +207,43 @@ test('iter skipWhile', () => {
   expect(iter([1, 2, 3]).skipWhile(value => value < 4).toArray()).toEqual([])
 })
 
+test('iter slice', () => {
+  expect(iter([1, 2, 3]).slice(1, 2).toArray()).toEqual([2])
+  expect(iter([1, 2, 3]).slice(0, 0).toArray()).toEqual([])
+  expect(iter([1, 2, 3]).slice(0, 1).toArray()).toEqual([1])
+  expect(iter([1, 2, 3]).slice(0, 5).toArray()).toEqual([1, 2, 3])
+  expect(iter([]).slice(0, 0).toArray()).toEqual([])
+  expect(() => iter().slice(-1, 1)).toThrow('Expected non-negative in slice, but got -1!')
+  expect(() => iter().slice(0, -1)).toThrow('Expected non-negative in slice, but got -1!')
+  expect(() => iter().slice(1, 0)).toThrow('Start index must be less than end index!')
+})
+
 test('iter takeWhile', () => {
   expect(iter([1, 2, 3]).takeWhile(value => value < 2).toArray()).toEqual([1])
   expect(iter([1, 2, 3]).takeWhile(value => value < 0).toArray()).toEqual([])
   expect(iter([]).takeWhile(() => true).toArray()).toEqual([])
   expect(iter([]).takeWhile(() => false).toArray()).toEqual([])
   expect(iter([1, 2, 3]).takeWhile(value => value < 4).toArray()).toEqual([1, 2, 3])
+})
+
+test('iter unique', () => {
+  expect(iter([1, 2, 3, 1, 2, 3]).unique().toArray()).toEqual([1, 2, 3])
+  expect(iter([1, 2, 3, 1, 2, 3, 4]).unique().toArray()).toEqual([1, 2, 3, 4])
+  expect(iter([1, 2, 3, 1, 2, 3, 4, 1, 2, 3]).unique().toArray()).toEqual([1, 2, 3, 4])
+  expect(iter([]).unique().toArray()).toEqual([])
+})
+
+test('iter uniqueBy', () => {
+  expect(iter([1, 2, 3, 1, 2, 3]).uniqueBy(value => value).toArray()).toEqual([1, 2, 3])
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+    { a: 3, b: 3 },
+    { a: 1, b: 2 },
+    { a: 2, b: 1 }
+  ]).uniqueBy(value => value.a).toArray())
+    .toEqual([{ a: 1, b: 1 }, { a: 2, b: 2 }, { a: 3, b: 3 }])
+  expect(iter([]).uniqueBy(() => 1).toArray()).toEqual([])
 })
 
 test('iter zip', () => {
@@ -150,9 +255,32 @@ test('iter zip', () => {
   expect(iter([1, 2, 3]).zip([4, 5, 6, 7]).toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
 })
 
+test('iter zipWith', () => {
+  expect(iter([1, 2, 3]).zipWith([4, 5, 6], (a, b) => a + b).toArray()).toEqual([5, 7, 9])
+  expect(iter([1, 2, 3]).zipWith(iter([4, 5, 6]), (a, b) => a + b).toArray()).toEqual([5, 7, 9])
+  expect(iter([1, 2, 3]).zipWith([], (a, b) => a + b).toArray()).toEqual([])
+  expect(iter([]).zipWith([], (a, b) => a + b).toArray()).toEqual([])
+  expect(iter([]).zipWith([1, 2, 3], (a, b) => a + b).toArray()).toEqual([])
+  expect(iter([1, 2, 3]).zipWith([4, 5, 6, 7], (a, b) => a + b).toArray()).toEqual([5, 7, 9])
+  expect(iter([1, 2, 3]).zipWith([4, 5], (a, b) => a + b).toArray()).toEqual([5, 7])
+})
+
 test('iter count', () => {
   expect(iter([1, 2, 3]).count()).toEqual(3)
   expect(iter([]).count()).toEqual(0)
+})
+
+test('iter each', () => {
+  const values: number[] = []
+  iter([1, 2, 3]).each(value => values.push(value))
+  expect(values).toEqual([1, 2, 3])
+
+  const logSpy = jest.spyOn(console, 'log')
+  iter([1, 2, 3]).each(console.log)
+  expect(logSpy).toHaveBeenCalledWith(1)
+  expect(logSpy).toHaveBeenCalledWith(2)
+  expect(logSpy).toHaveBeenCalledWith(3)
+  logSpy.mockRestore()
 })
 
 test('iter eq', () => {
@@ -191,22 +319,43 @@ test('iter findIndex', () => {
   expect(iter([]).findIndex(() => false)).toEqual(nothing())
 })
 
-test('iter each', () => {
-  const values: number[] = []
-  iter([1, 2, 3]).each(value => values.push(value))
-  expect(values).toEqual([1, 2, 3])
+test('iter groupToMap', () => {
+  const parse = (map: Map<number, Iter<number>>) => new Map([...map.entries()].map(([k, v]) => [k, v.toArray()]))
+  expect(parse(iter([1, 2, 3, 4, 5, 6]).groupToMap(value => value % 2))).toEqual(new Map([[0, [2, 4, 6]], [1, [1, 3, 5]]]))
+  expect(parse(iter<number>().groupToMap(value => value % 2))).toEqual(new Map())
+})
 
-  const logSpy = jest.spyOn(console, 'log')
-  iter([1, 2, 3]).each(console.log)
-  expect(logSpy).toHaveBeenCalledWith(1)
-  expect(logSpy).toHaveBeenCalledWith(2)
-  expect(logSpy).toHaveBeenCalledWith(3)
-  logSpy.mockRestore()
+test('iter groupToObject', () => {
+  const parse = (obj: Record<string, Iter<number>>) => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v.toArray()]))
+  expect(parse(iter([1, 2, 3, 4, 5, 6]).groupToObject(value => value % 2))).toEqual({ 0: [2, 4, 6], 1: [1, 3, 5] })
+  expect(parse(iter<number>().groupToObject(value => value % 2))).toEqual({})
+})
+
+test('iter join', () => {
+  expect(iter([1, 2, 3]).join(',')).toEqual('1,2,3')
+  expect(iter([]).join(',')).toEqual('')
 })
 
 test('iter last', () => {
   expect(iter([1, 2, 3]).last()).toEqual(just(3))
   expect(iter([]).last()).toEqual(nothing())
+})
+
+test('iter ne', () => {
+  expect(iter([1, 2, 3]).ne(iter([1, 2, 3]))).toEqual(false)
+  expect(iter([1, 2, 3]).ne(iter([1, 2, 3, 4]))).toEqual(true)
+  expect(iter([1, 2, 3]).ne(iter([1, 2]))).toEqual(true)
+  expect(iter([1, 2, 3]).ne(iter([]))).toEqual(true)
+  expect(iter([]).ne(iter([]))).toEqual(false)
+})
+
+test('iter neBy', () => {
+  const ne = (a: number, b: number) => a !== b
+  expect(iter([1, 2, 3]).neBy(iter([1, 2, 3]), ne)).toEqual(false)
+  expect(iter([1, 2, 3]).neBy(iter([1, 2, 3, 4]), ne)).toEqual(true)
+  expect(iter([1, 2, 3]).neBy(iter([1, 2]), ne)).toEqual(true)
+  expect(iter([1, 2, 3]).neBy(iter([]), ne)).toEqual(true)
+  expect(iter([]).neBy(iter([]), ne)).toEqual(false)
 })
 
 test('iter nth', () => {
@@ -252,4 +401,10 @@ test('iter toObject', () => {
 test('iter toSet', () => {
   expect(iter([1, 2, 3]).toSet()).toEqual(new Set([1, 2, 3]))
   expect(iter([]).toSet()).toEqual(new Set())
+})
+
+test('iter toString', () => {
+  expect(iter([1, 2, 3]).toString()).toEqual('Iter { 1, 2, 3 }')
+  expect(iter([]).toString()).toEqual('Iter {  }')
+  expect(iter(1).toString()).toEqual('Iter { 1 }')
 })

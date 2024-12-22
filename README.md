@@ -10,7 +10,9 @@ npm install lazy-iter.js
 
 ## API reference
 
+  * <a href="#append">append</a>
   * <a href="#chain">chain</a>
+  * <a href="#chunks">chunks</a>
   * <a href="#concat">concat</a>
   * <a href="#count">count</a>
   * <a href="#cycle">cycle</a>
@@ -25,20 +27,31 @@ npm install lazy-iter.js
   * <a href="#flat">flat</a>
   * <a href="#find">find</a>
   * <a href="#findIndex">findIndex</a>
+  * <a href="#groupToMap">groupToMap</a>
+  * <a href="#groupToObject">groupToObject</a>
+  * <a href="#interleave">interleave</a>
+  * <a href="#interleaveShortest">interleaveShortest</a>
   * <a href="#inspect">inspect</a>
-  * <a href="#intersperce">intersperce</a>
+  * <a href="#intersperse">intersperse</a>
   * <a href="#isIter">isIter</a>
   * <a href="#iter">iter</a>
+  * <a href="#join">join</a>
   * <a href="#last">last</a>
   * <a href="#map">map</a>
+  * <a href="#merge">merge</a>
+  * <a href="#mergeBy">mergeBy</a>
+  * <a href="#ne">ne</a>
+  * <a href="#neBy">neBy</a>
   * <a href="#nth">nth</a>
   * <a href="#partition">partition</a>
+  * <a href="#prepend">prepend</a>
   * <a href="#reduce">reduce</a>
   * <a href="#repeat">repeat</a>
   * <a href="#rev">rev</a>
   * <a href="#scan">scan</a>
   * <a href="#skip">skip</a>
   * <a href="#skipWhile">skipWhile</a>
+  * <a href="#slice">slice</a>
   * <a href="#some">some</a>
   * <a href="#take">take</a>
   * <a href="#takeWhile">takeWhile</a>
@@ -46,7 +59,11 @@ npm install lazy-iter.js
   * <a href="#toMap">toMap</a>
   * <a href="#toObject">toObject</a>
   * <a href="#toSet">toSet</a>
+  * <a href="#toString">toString</a>
+  * <a href="#unique">unique</a>
+  * <a href="#uniqueBy">uniqueBy</a>
   * <a href="#zip">zip</a>
+  * <a href="#zipWith">zipWith</a>
 
 ### API to create `Iter` instance
 
@@ -68,9 +85,18 @@ npm install lazy-iter.js
 
 #### lazy evaluation methods
 
+* <span id="append">append</span> :: (item: T): Iter\<T>
+
+  Append a single element to the end of an `Iter`.
+
 * <span id="chain">chain</span> :: (other: Iterable\<T>) => Iter\<T>
 
   Concatenates the current `Iter` with the given iterable.
+
+* <span id="chunks">chunks</span> :: (size: number): Iter\<Iter\<T>>
+
+  Split an `Iter` into chunks of the given size.<br>
+  Panics if `size` is not a positive integer.
 
 * <span id="concat">concat</span> :: (...others: Iterable\<T>[]) => Iter\<T>
 
@@ -113,21 +139,41 @@ npm install lazy-iter.js
   It’s more common for inspect() to be used as a debugging tool than to exist in your final code,<br>
   but applications may find it useful in certain situations when errors need to be logged before being discarded.
 
-* <span id="intersperce">intersperce</span> :: (value: T) => Iter\<T>
+* <span id="intersperse">intersperse</span> :: (value: T) => Iter\<T>
 
   Returns a new `Iter` that intersperses the given value between each of the elements of the current `Iter`.<br>
   The new `Iter` will yield the first element of the current `Iter`, then the given value,<br>
   then the second element of the current `Iter`, then the given value again, and so on.<br>
+  The given value can be a function that returns a value,<br>
+  in which case the value returned by the function will be used as the interspersed value.
 
 * <span id="map">map</span> :: \<U>(fn: (value: T) => U) => Iter\<U>
 
   Creates a new `Iter` by applying the given function to each value in the current `Iter`.
+
+* <span id="merge">merge</span> :: (other: Iterable\<T>): Iter\<T>
+
+  Merge the current `Iter` with the given iterable.<br>
+  The method takes another iterator and returns a new `Iter` that yields the merged elements.<br>
+  The merged iterator will yield elements in ascending order.<br>
+  If two elements are equal, the first element from the current `Iter` will come first.<br>
+  If both base iterators are sorted (ascending), the result is sorted.<br>
+
+* <span id="mergeBy">mergeBy</span> :: (other: Iterable\<T>, isFirst: (a: T, b: T) => boolean): Iter\<T>
+
+  Merges the current `Iter` with the given iterable using the provided `isFirst` function.<br>
+  The `isFirst` function takes two values, first from the current `Iter` and second from the given iterable,<br>
+  and returns true if the first value should be yielded before the second value.<br>
 
 * <span id="partition">partition</span> :: (fn: (value: T) => boolean) => [Iter\<T>, Iter\<T>]
 
   Splits the current `Iter` into two separate `Iter` instances based on the provided predicate function.<br>
   The first `Iter` contains all elements for which the predicate function returns true,<br>
   and the second `Iter` contains all elements for which the predicate function returns false.<br>
+
+* <span id="prepend">prepend</span> :: (item: T): Iter\<T>
+
+  Prepends a single element to the beginning of the `Iter`.
 
 * <span id="scan">scan</span> :: \<U>(fn: (acc: U, value: T) => U | null | undefined | Maybe\<U>, initial: U) => Iter\<U>
 
@@ -146,6 +192,10 @@ npm install lazy-iter.js
   Skips elements in the `Iter` until the given function returns false.<br>
   After the first false result, the rest of the elements are yielded.
 
+* <span id="slice">slice</span> :: (start: number, end: number): Iter\<T>
+
+  Returns a new `Iter` that yields the elements of the current `Iter` in the given range.
+
 * <span id="take">take</span> :: (n: number) => Iter\<T>
 
   Takes the first `n` values from the current `Iter`.<br>
@@ -156,17 +206,44 @@ npm install lazy-iter.js
   Takes elements from the `Iter` as long as the given function returns true.<br>
   Once the function returns false, the iteration stops.
 
+* <span id="unique">unique</span> :: (): Iter\<T>
+
+  Return an `Iter` that filters out elements that have already been produced once during the iteration.<br>
+  Duplicates are detected by comparing the elements by value and reference.<br>
+  The values are stored in a set in the iterator.<br>
+  The `Iter` is stable, returning the non-duplicate items in the order in which they occur in the adapted `Iter`.<br>
+  In a set of duplicate items, the first item encountered is the item retained.<br>
+
+* <span id="uniqueBy">uniqueBy</span> :: \<V>(fn: (value: T) => V): Iter\<T>
+
+  Return an `Iter` that filters out elements that have already been produced once during the iteration.<br>
+  Duplicates are detected by comparing the key they map to with the keying function `fn` by hash and equality.<br>
+  The keys are stored in a hash set in the iterator.<br>
+  The `Iter` is stable, returning the non-duplicate items in the order in which they occur in the adapted `Iter`.<br>
+  In a set of duplicate items, the first item encountered is the item retained.<br>
+
 * <span id="zip">zip</span> :: \<U>(other: Iterable\<U>) => Iter<[T, U]>
 
   Zip this `Iter` with another iterator.<br>
   This method takes another iterator and returns a new `Iter` that yields tuples of elements from both iterators.<br>
   The new `Iter` will stop when either iterator stops.
 
+* <span id="zipWith">zipWith</span> :: \<V, U = unknown>(other: Iter\<U>, fn: (a: T, b: U) => V): Iter\<V>
+
+  Creates a new `Iter` that pairs each element of the current `Iter` with the corresponding element of another `Iter`,<br>
+  and applies a function to each pair, yielding the results.<br>
+  The new `Iter` will stop when either iterator stops.<br>
+
+
 #### eager evaluation methods
 
 * <span id="count">count</span> :: () => number
 
   Returns the number of items in the `Iter`.
+
+* <span id="each">each</span> :: (fn: (value: T) => void) => void
+
+  Executes the given function once for each element in the `Iter`.
 
 * <span id="eq">eq</span> :: (other: Iter\<T>) => boolean
 
@@ -177,7 +254,7 @@ npm install lazy-iter.js
 
   Tests if the current `Iter` is equal to the given `Iter` according to the given equality function.<br>
   Two `Iter`s are considered equal if they contain the same elements in the same order.<br>
-  The equality function takes two values of type `T` and returns a boolean.
+  The equality function takes two values of type `T` and returns a boolean that indicates the two values are equalare equal.
 
 * <span id="every">every</span> :: (fn: (value: T) => boolean) => boolean
 
@@ -185,22 +262,54 @@ npm install lazy-iter.js
 
 * <span id="find">find</span> :: (fn: (value: T) => boolean) => Maybe\<T>
 
-  Returns the first value wrapped in `Just\<T>` in the `Iter` for which the given predicate function returns true.<br>
+  Returns the first value wrapped in `Just<T>` in the `Iter` for which the given predicate function returns true.<br>
   If no element satisfies the predicate, returns `Nothing`.
 
-* <span id="findIndex">findIndex</span> :: (fn: (value: T) => boolean) => Maybe<number>
+* <span id="findIndex">findIndex</span> :: (fn: (value: T) => boolean) => Maybe\<number>
 
   Returns the index of the first element wrapped in `Just<number>` in the `Iter` that satisfies the given predicate function.<br>
   If no element satisfies the predicate, returns `Nothing`.
 
-* <span id="each">each</span> :: (fn: (value: T) => void) => void
+* <span id="groupToMap">groupToMap</span> :: \<K>(keySelector: (value: T) => K): Map\<K, Iter\<T>>
+  
+  Reduces the `Iter` to a `Map` where the keys are values returned by the given function,<br>
+  and the values are `Iter`s of the elements that were grouped by the given function.
 
-  Executes the given function once for each element in the `Iter`.
+* <span id="groupToObject">groupToObject</span> :: \<k extends PropertyKey>(keySelector: (value: T) => K): Record\<k, Iter\<T>>
+
+  Reduces the `Iter` to a `Object` where the keys are values returned by the given function,<br>
+  and the values are `Iter`s of the elements that were grouped by the given function.
+
+* <span id="interleave">interleave</span> :: (other: Iterable\<T>): Iter\<T>
+
+  Alternate elements from two iterators until both have run out.
+
+* <span id="interleaveShortest">interleaveShortest</span> :: (other: Iterable\<T>): Iter\<T>
+
+  Alternate elements from two iterators until at least one of them has run out.
+
+* <span id="join">join</span> :: (sep: string): string
+
+  Join all elements of the `Iter` into a single string, separated by the given separator.
 
 * <span id="last">last</span> :: () => Maybe\<T>
 
-  Returns the last value in the `Iter`, wrapped in `Just\<T>`.<br>
+  Returns the last value in the `Iter`, wrapped in `Just<T>`.<br>
   If the `Iter` is empty, returns `Nothing`.
+
+* <span id="ne">ne</span> :: (item: T): Iter\<T>
+
+  Checks if the current `Iter` is not equal to the given `Iter`.<br>
+  Two `Iter`s are considered not equal if they contain different elements (tests with `Object.is`) in the same order,<br>
+  or if they have different lengths.<br>
+
+* <span id="neBy">neBy</span> :: (other: Iter\<T>, fn: (a: T, b: T) => boolean): boolean
+
+  Tests if the current `Iter` is not equal to the given `Iter` using the given comparison function.<br>
+  Two `Iter`s are considered not equal if they contain the different elements in the same order,<br>
+  or if they have different lengths.<br>
+  The comparison function takes two values of type `T` and<br>
+  returns a boolean that indicates the two values are not equal.<br>
 
 * <span id="nth">nth</span> :: (n: number) => Maybe\<T>
 
@@ -236,6 +345,10 @@ npm install lazy-iter.js
   Note that the order of the elements in the resulting `Set` is not guaranteed
   to be the same as the order of elements in the original `Iter`,<br>
   because the `Iter` might contain duplicates.<br>
+
+* <span id="toString">toString</span> :: () => string
+
+  Returns a string representation of the `Iter`.
 
 #### eager evaluate values and return lazy `Iter`
 
