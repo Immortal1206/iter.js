@@ -1,5 +1,6 @@
 import { just, nothing } from 'error-null-handle'
 import iter, { repeat, type Iter } from '../src/index'
+import { id } from '../src/utils'
 
 test('iter Symbol.iterator', () => {
   const it1 = iter([1, 2, 3])[Symbol.iterator]()
@@ -55,6 +56,53 @@ test('iter cycle', () => {
   expect(iter([1, 2, 3]).cycle().take(2).toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).cycle().take(5).toArray()).toEqual([1, 2, 3, 1, 2])
   expect(iter([1, 2, 3]).cycle().take(10).toArray()).toEqual([1, 2, 3, 1, 2, 3, 1, 2, 3, 1])
+})
+
+test('iter dedup', () => {
+  expect(iter([1, 2, 3, 1, 2, 3]).dedup().toArray()).toEqual([1, 2, 3, 1, 2, 3])
+  expect(iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedup().toArray()).toEqual([1, 2, 3, 2, 3])
+  expect(iter([]).dedup().toArray()).toEqual([])
+})
+
+test('iter dedupBy', () => {
+  expect(iter([1, 2, 3, 1, 2, 3]).dedupBy((a, b) => a === b).toArray()).toEqual([1, 2, 3, 1, 2, 3])
+  expect(iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedupBy((a, b) => a === b).toArray()).toEqual([1, 2, 3, 2, 3])
+  expect(iter([]).dedupBy((a, b) => a === b).toArray()).toEqual([])
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 1 },
+    { a: 2, b: 2 },
+    { a: 2, b: 3 },
+    { a: 3, b: 1 },
+    { a: 3, b: 2 },
+    { a: 2, b: 1 },
+    { a: 2, b: 2 },
+    { a: 2, b: 3 },
+  ]).dedupBy((a, b) => a.a === b.a).toArray()).toEqual([
+    { a: 1, b: 1 },
+    { a: 2, b: 1 },
+    { a: 3, b: 1 },
+    { a: 2, b: 1 },
+  ])
+})
+
+test('iter dedupByKey', () => {
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 1 },
+    { a: 2, b: 2 },
+    { a: 2, b: 3 },
+    { a: 3, b: 1 },
+    { a: 3, b: 2 },
+    { a: 2, b: 1 },
+    { a: 2, b: 2 },
+    { a: 2, b: 3 },
+  ]).dedupByKey(value => value.a).toArray()).toEqual([
+    { a: 1, b: 1 },
+    { a: 2, b: 1 },
+    { a: 3, b: 1 },
+    { a: 2, b: 1 },
+  ])
 })
 
 test('iter enumerate', () => {
@@ -164,6 +212,28 @@ test('iter mergeBy', () => {
   ])
 })
 
+test('iter mergeByKey', () => {
+  expect(iter([1, 2, 3]).mergeByKey([4, 5, 6], id).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 3, 5]).mergeByKey([2, 4, 6], id).toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(iter([1, 2, 3]).mergeByKey([], id).toArray()).toEqual([1, 2, 3])
+  expect(iter<number>().mergeByKey([4, 5, 6], id).toArray()).toEqual([4, 5, 6])
+  expect(iter([1, 1, 1]).mergeByKey([2, 2], id).toArray()).toEqual([1, 1, 1, 2, 2])
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+  ]).mergeByKey([
+    { a: 1, b: 2 },
+    { a: 1, b: 3 },
+    { a: 3, b: 3 },
+  ], v => v.a).toArray()).toEqual([
+    { a: 1, b: 1 },
+    { a: 1, b: 2 },
+    { a: 1, b: 3 },
+    { a: 2, b: 2 },
+    { a: 3, b: 3 },
+  ])
+})
+
 test('iter prepend', () => {
   expect(iter([1, 2, 3]).prepend(0).toArray()).toEqual([0, 1, 2, 3])
   expect(iter().prepend(0).toArray()).toEqual([0])
@@ -233,17 +303,17 @@ test('iter unique', () => {
   expect(iter([]).unique().toArray()).toEqual([])
 })
 
-test('iter uniqueBy', () => {
-  expect(iter([1, 2, 3, 1, 2, 3]).uniqueBy(value => value).toArray()).toEqual([1, 2, 3])
+test('iter uniqueByKey', () => {
+  expect(iter([1, 2, 3, 1, 2, 3]).uniqueByKey(value => value).toArray()).toEqual([1, 2, 3])
   expect(iter([
     { a: 1, b: 1 },
     { a: 2, b: 2 },
     { a: 3, b: 3 },
     { a: 1, b: 2 },
     { a: 2, b: 1 }
-  ]).uniqueBy(value => value.a).toArray())
+  ]).uniqueByKey(value => value.a).toArray())
     .toEqual([{ a: 1, b: 1 }, { a: 2, b: 2 }, { a: 3, b: 3 }])
-  expect(iter([]).uniqueBy(() => 1).toArray()).toEqual([])
+  expect(iter([]).uniqueByKey(() => 1).toArray()).toEqual([])
 })
 
 test('iter zip', () => {
@@ -329,6 +399,30 @@ test('iter groupToObject', () => {
   const parse = (obj: Record<string, Iter<number>>) => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v.toArray()]))
   expect(parse(iter([1, 2, 3, 4, 5, 6]).groupToObject(value => value % 2))).toEqual({ 0: [2, 4, 6], 1: [1, 3, 5] })
   expect(parse(iter<number>().groupToObject(value => value % 2))).toEqual({})
+})
+
+test('iter isUnique', () => {
+  expect(iter([1, 2, 3]).isUnique()).toBe(true)
+  expect(iter([1, 1, 2, 3]).isUnique()).toBe(false)
+  expect(iter([]).isUnique()).toBe(true)
+})
+
+test('iter isUniqueByKey', () => {
+  expect(iter([1, 2, 3]).isUniqueByKey(id)).toBe(true)
+  expect(iter([1, 1, 2, 3]).isUniqueByKey(id)).toBe(false)
+  expect(iter([]).isUniqueByKey(id)).toBe(true)
+  expect(iter([
+    { id: 1 },
+    { id: 2 },
+    { id: 3 },
+    { id: 1 }
+  ]).isUniqueByKey(v => v.id)).toBe(false)
+  expect(iter([
+    { id: 1 },
+    { id: 2 },
+    { id: 3 },
+    { id: 4 }
+  ]).isUniqueByKey(v => v.id)).toBe(true)
 })
 
 test('iter join', () => {

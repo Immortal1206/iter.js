@@ -40,6 +40,29 @@ export interface IterMethods<T> {
    */
   cycle(): Iter<T>
   /**
+   * Removes all but the first of consecutive duplicate elements in the `Iter`.
+   * Duplicates are detected using `Object.is` for comparison.
+   *
+   * @returns A new `Iter` that yields only the first occurrence of each consecutive duplicate value.
+   */
+  dedup(): Iter<T>
+  /**
+    * Removes all but the first of consecutive elements in the `Iter` satisfying a given equality relation.
+    * Consecutive elements `a` and `b` are considered duplicates if `sameBucket(a, b)` returns true.
+    * 
+    * @param sameBucket - A function that takes two elements of type `T` and returns true if they are to be considered duplicates.
+    * @returns A new `Iter` that yields only the first occurrence of each value, based on the result of the given function.
+    */
+  dedupBy(sameBucket: (a: T, b: T) => boolean): Iter<T>
+  /**
+   * Removes all but the first of consecutive elements in the iterator based on a key derived from each element.
+   * Consecutive elements are considered duplicates if they map to the same key (tests with `Object.is`).
+   *
+   * @param getKey - A function that takes a value of type `T` and returns a key of type `K`.
+   * @returns A new `Iter` that yields only the first occurrence of each value, based on the key derived by the given function.
+   */
+  dedupByKey<K>(getKey: (value: T) => K): Iter<T>
+  /**
    * Creates an `Iter` which gives the current iteration count as well as the value.
    * The iterator returned yields pairs [i, val], where i is the current index of iteration and val is the value returned by the `Iter`.
    *
@@ -76,7 +99,7 @@ export interface IterMethods<T> {
    *
    * @returns A new `Iter` instance containing all elements from the nested iterables in a flat structure.
    */
-  flat(): Iter<T>
+  flat(): Iter<IterableFlatted<T>>
   /**
    * Does something with each element of an `Iter`, passing the value on.
    * When using iterators, you’ll often chain several of them together. 
@@ -124,7 +147,6 @@ export interface IterMethods<T> {
   map<U>(fn: (value: T) => U): Iter<U>
   /**
    * Merge the current `Iter` with the given iterable.
-   * The method takes another iterator and returns a new `Iter` that yields the merged elements.
    * The merged iterator will yield elements in ascending order.
    * If two elements are equal, the first element from the current `Iter` will come first.
    * If both base iterators are sorted (ascending), the result is sorted.
@@ -143,6 +165,15 @@ export interface IterMethods<T> {
    * @returns A new `Iter` instance that merges the current `Iter` with the given iterable.
    */
   mergeBy(other: Iterable<T>, isFirst: (a: T, b: T) => boolean): Iter<T>
+  /**
+   * Merges the current `Iter` with the given iterable using the given function to extract a key from each element.
+   * The elements are merged in ascending order of their keys.
+   *
+   * @param other the iterable to merge with
+   * @param getKey the function to extract a key from each element
+   * @returns a new `Iter` that is the result of merging the two iterables
+   */
+  mergeByKey<K>(other: Iterable<T>, getKey: (value: T) => K): Iter<T>
   /**
    * Prepends a single element to the beginning of the `Iter`.
    * 
@@ -231,7 +262,7 @@ export interface IterMethods<T> {
    * @param fn - A function that takes a value of type `T` and returns the key of each element.
    * @returns A new iterator that yields only the first occurrence of each value, based on the result of the given function.
    */
-  uniqueBy<V>(fn: (value: T) => V): Iter<T>
+  uniqueByKey<K>(fn: (value: T) => K): Iter<T>
   /**
    * Zip this `Iter` with another iterator.
    * This method takes another iterator and returns a new `Iter` that yields tuples of elements from both iterators.
@@ -325,6 +356,22 @@ export interface IterMethods<T> {
    * @returns an object where each key is a value of type `K` and each value is an `Iter` of type `Iter<T>`
    */
   groupToObject<K extends PropertyKey>(keySelector: (value: T) => K): Record<K, Iter<T>>
+  /**
+   * Tests if the current `Iter` contains non duplicate elements.
+   * Duplicates are detected by by hash and equality.
+   * 
+   * @returns `true` if the `Iter` contains unique elements, `false` otherwise.
+   */
+  isUnique(): boolean
+  /**
+   * Tests if the current `Iter` contains non duplicate elements according to the given keying function.
+   * Duplicates are detected by comparing the key they map to with the keying function `fn` by hash and equality.
+   * The keys are stored in a `Set` in the iterator.
+   *
+   * @param fn - A function that takes a value of type `T` and returns the key of each element.
+   * @returns `true` if the `Iter` contains unique elements, `false` otherwise.
+   */
+  isUniqueByKey<K>(fn: (value: T) => K): boolean
   /**
    * Join all elements of the `Iter` into a single string, separated by the given separator.
    * 
@@ -430,3 +477,5 @@ export interface IterMethods<T> {
   rev(): Iter<T>
   //#endregion
 }
+
+export type IterableFlatted<T> = T extends Iterable<infer InnerIt> ? IterableFlatted<InnerIt> : T

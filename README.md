@@ -16,6 +16,9 @@ npm install lazy-iter.js
   * <a href="#concat">concat</a>
   * <a href="#count">count</a>
   * <a href="#cycle">cycle</a>
+  * <a href="#dedup">dedup</a>
+  * <a href="#dedupBy">dedupBy</a>
+  * <a href="#dedupByKey">dedupByKey</a>
   * <a href="#each">each</a>
   * <a href="#enumerate">enumerate</a>
   * <a href="#eq">eq</a>
@@ -34,12 +37,15 @@ npm install lazy-iter.js
   * <a href="#inspect">inspect</a>
   * <a href="#intersperse">intersperse</a>
   * <a href="#isIter">isIter</a>
+  * <a href="#isUnique">isUnique</a>
+  * <a href="#isUniqueByKey">isUniqueByKey</a>
   * <a href="#iter">iter</a>
   * <a href="#join">join</a>
   * <a href="#last">last</a>
   * <a href="#map">map</a>
   * <a href="#merge">merge</a>
   * <a href="#mergeBy">mergeBy</a>
+  * <a href="#mergeByKey">mergeByKey</a>
   * <a href="#ne">ne</a>
   * <a href="#neBy">neBy</a>
   * <a href="#nth">nth</a>
@@ -61,7 +67,7 @@ npm install lazy-iter.js
   * <a href="#toSet">toSet</a>
   * <a href="#toString">toString</a>
   * <a href="#unique">unique</a>
-  * <a href="#uniqueBy">uniqueBy</a>
+  * <a href="#uniqueByKey">uniqueByKey</a>
   * <a href="#zip">zip</a>
   * <a href="#zipWith">zipWith</a>
 
@@ -106,6 +112,21 @@ npm install lazy-iter.js
 
   Repeats the `Iter` endlessly.
 
+* <span id="dedup">dedup</span> :: () => Iter\<T>
+
+  Removes all but the first of consecutive duplicate elements in the `Iter`.<br>
+  Duplicates are detected using `Object.is` for comparison.
+
+* <span id="dedupBy">dedupBy</span> :: (sameBucket: (a: T, b: T) => boolean) => Iter\<T>
+
+  Removes all but the first of consecutive elements in the `Iter` satisfying a given equality relation.<br>
+  Consecutive elements `a` and `b` are considered duplicates if `sameBucket(a, b)` returns true.
+
+* <span id="dedupByKey">dedupByKey</span> :: \<K>(getKey: (value: T) => K) => Iter\<T>
+
+  Removes all but the first of consecutive elements in the iterator based on a key derived from each element.<br>
+  Consecutive elements are considered duplicates if they map to the same key (tests with `Object.is`).
+
 * <span id="enumerate">enumerate</span> :: () => Iter<[number, T]>
 
   Creates an `Iter` which gives the current iteration count as well as the value.
@@ -125,7 +146,7 @@ npm install lazy-iter.js
 
   Maps each value of the current `Iter` to an `Iter` using the given function and flattens the result.
 
-* <span id="flat">flat</span> :: () => Iter\<T>
+* <span id="flat">flat</span> :: () => Iter\<IterableFlatted\<T>>
 
   Flattens nested iterables within the current `Iter`.
 
@@ -154,7 +175,6 @@ npm install lazy-iter.js
 * <span id="merge">merge</span> :: (other: Iterable\<T>): Iter\<T>
 
   Merge the current `Iter` with the given iterable.<br>
-  The method takes another iterator and returns a new `Iter` that yields the merged elements.<br>
   The merged iterator will yield elements in ascending order.<br>
   If two elements are equal, the first element from the current `Iter` will come first.<br>
   If both base iterators are sorted (ascending), the result is sorted.<br>
@@ -164,6 +184,11 @@ npm install lazy-iter.js
   Merges the current `Iter` with the given iterable using the provided `isFirst` function.<br>
   The `isFirst` function takes two values, first from the current `Iter` and second from the given iterable,<br>
   and returns true if the first value should be yielded before the second value.<br>
+
+* <span id="mergeByKey">mergeByKey</span> :: \<K>(other: Iterable\<T>, getKey: (value: T) => K): Iter\<T>
+
+  Merges the current `Iter` with the given iterable using the given function to extract a key from each element.<br>
+  The elements are merged in ascending order of their keys.
 
 * <span id="partition">partition</span> :: (fn: (value: T) => boolean) => [Iter\<T>, Iter\<T>]
 
@@ -214,7 +239,7 @@ npm install lazy-iter.js
   The `Iter` is stable, returning the non-duplicate items in the order in which they occur in the adapted `Iter`.<br>
   In a set of duplicate items, the first item encountered is the item retained.<br>
 
-* <span id="uniqueBy">uniqueBy</span> :: \<V>(fn: (value: T) => V): Iter\<T>
+* <span id="uniqueByKey">uniqueByKey</span> :: \<V>(fn: (value: T) => V): Iter\<T>
 
   Return an `Iter` that filters out elements that have already been produced once during the iteration.<br>
   Duplicates are detected by comparing the key they map to with the keying function `fn` by hash and equality.<br>
@@ -287,6 +312,17 @@ npm install lazy-iter.js
 * <span id="interleaveShortest">interleaveShortest</span> :: (other: Iterable\<T>): Iter\<T>
 
   Alternate elements from two iterators until at least one of them has run out.
+
+* <span id="isUnique">isUnique</span> :: (): boolean
+
+  Tests if the current `Iter` contains non duplicate elements.<br>
+  Duplicates are detected by by hash and equality.
+  
+* <span id="isUniqueByKey">isUniqueByKey</span> :: \<K>(fn: (value: T) => K): boolean
+
+  Tests if the current `Iter` contains non duplicate elements according to the given keying function.<br>
+  Duplicates are detected by comparing the key they map to with the keying function `fn` by hash and equality.<br>
+  The keys are stored in a `Set` in the iterator.<br>
 
 * <span id="join">join</span> :: (sep: string): string
 

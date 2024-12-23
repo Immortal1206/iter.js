@@ -5,11 +5,12 @@ import {
   assertInteger,
   assertNonNegative,
   assertNonZero,
+  id,
   isFunction,
   isIterable,
   isNullUndefined
 } from './utils'
-import type { IterMethods } from './@types/iter'
+import type { IterableFlatted, IterMethods } from './@types/iter'
 
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
@@ -102,6 +103,27 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
+  dedup(): Iter<T> {
+    return this.dedupBy(Object.is)
+  }
+
+  dedupBy(sameBucket: (a: T, b: T) => boolean): Iter<T> {
+    const it = this.#generator()
+    return new Iter(function* () {
+      let prev: T | undefined
+      for (const value of it) {
+        if (prev === undefined || !sameBucket(prev, value)) {
+          yield value
+          prev = value
+        }
+      }
+    })
+  }
+
+  dedupByKey<K>(getKey: (value: T) => K): Iter<T> {
+    return this.dedupBy((a, b) => Object.is(getKey(a), getKey(b)))
+  }
+
   enumerate(): Iter<[number, T]> {
     const it = this.#generator()
     return new Iter(function* () {
@@ -141,12 +163,12 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
-  flat(): Iter<T> {
+  flat(): Iter<IterableFlatted<T>> {
     const it = this.#generator()
-    function* flatten(iterable: Iterable<T>): Generator<T> {
+    function* flatten(iterable: Iterable<T>): Generator<IterableFlatted<T>> {
       for (const value of iterable) {
         if (isIterable<T>(value)) yield* flatten(value)
-        else yield value
+        else yield value as IterableFlatted<T>
       }
     }
 
@@ -232,29 +254,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   merge(other: Iterable<T>): Iter<T> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
-    return new Iter(function* () {
-      let value1 = it1.next()
-      let value2 = it2.next()
-      while (!value1.done && !value2.done) {
-        if (value1.value <= value2.value) {
-          yield value1.value
-          value1 = it1.next()
-        } else {
-          yield value2.value
-          value2 = it2.next()
-        }
-      }
-      while (!value1.done) {
-        yield value1.value
-        value1 = it1.next()
-      }
-      while (!value2.done) {
-        yield value2.value
-        value2 = it2.next()
-      }
-    })
+    return this.mergeBy(other, (a, b) => a <= b)
   }
 
   mergeBy(other: Iterable<T>, isFirst: (a: T, b: T) => boolean): Iter<T> {
@@ -281,6 +281,10 @@ export class Iter<T> implements IterMethods<T> {
         value2 = it2.next()
       }
     })
+  }
+
+  mergeByKey<K>(other: Iterable<T>, getKey: (value: T) => K): Iter<T> {
+    return this.mergeBy(other, (a, b) => getKey(a) <= getKey(b))
   }
 
   partition(fn: (value: T) => boolean): [Iter<T>, Iter<T>] {
@@ -406,20 +410,12 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   unique(): Iter<T> {
-    const it = this.#generator()
-    const seen = new Set<T>()
-    return new Iter(function* () {
-      for (const value of it) {
-        if (seen.has(value)) continue
-        seen.add(value)
-        yield value
-      }
-    })
+    return this.uniqueByKey(id)
   }
 
-  uniqueBy<V>(fn: (value: T) => V): Iter<T> {
+  uniqueByKey<K>(fn: (value: T) => K): Iter<T> {
     const it = this.#generator()
-    const seen = new Set<V>()
+    const seen = new Set<K>()
 
     return new Iter(function* () {
       for (const value of it) {
@@ -544,6 +540,23 @@ export class Iter<T> implements IterMethods<T> {
       }
       return acc
     }, {} as Record<K, Iter<T>>)
+  }
+
+  isUnique(): boolean {
+    return this.isUniqueByKey(id)
+  }
+
+  isUniqueByKey(fn: (value: T) => unknown): boolean {
+    const it = this.#generator()
+    const seen = new Set()
+
+    for (const value of it) {
+      const key = fn(value)
+      if (seen.has(key)) return false
+      seen.add(key)
+    }
+
+    return true
   }
 
   join(sep: string): string {

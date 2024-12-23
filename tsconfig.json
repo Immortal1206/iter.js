@@ -16,6 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true,
     "skipLibCheck": true,
+    "importHelpers": true
   },
   "include": [
     "./src"

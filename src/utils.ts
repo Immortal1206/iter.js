@@ -26,3 +26,5 @@ export function assertNonZero(value: number, name: string): asserts value is num
 }
 
 export const isFunction = (value: unknown): value is (...args: unknown[]) => unknown => typeof value === 'function'
+
+export const id = <T>(value: T): T => value
