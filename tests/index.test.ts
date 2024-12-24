@@ -357,7 +357,7 @@ test('iter eq', () => {
   expect(iter([1, 2, 3]).eq(iter([1, 2, 3]))).toEqual(true)
   expect(iter([1, 2, 3]).eq(iter([1, 2, 3, 4]))).toEqual(false)
   expect(iter([1, 2, 3]).eq(iter([1, 2]))).toEqual(false)
-  expect(iter([1, 2, 3]).eq(iter([]))).toEqual(false)
+  expect(iter([1, 2, 3]).eq(iter<number>([]))).toEqual(false)
 })
 
 test('iter eqBy', () => {
@@ -365,7 +365,7 @@ test('iter eqBy', () => {
   expect(iter([1, 2, 3]).eqBy(iter([1, 2, 3]), eq)).toEqual(true)
   expect(iter([1, 2, 3]).eqBy(iter([1, 2, 3, 4]), eq)).toEqual(false)
   expect(iter([1, 2, 3]).eqBy(iter([1, 2]), eq)).toEqual(false)
-  expect(iter([1, 2, 3]).eqBy(iter([]), eq)).toEqual(false)
+  expect(iter([1, 2, 3]).eqBy(iter<number>([]), eq)).toEqual(false)
 })
 
 test('iter every', () => {
@@ -439,7 +439,7 @@ test('iter ne', () => {
   expect(iter([1, 2, 3]).ne(iter([1, 2, 3]))).toEqual(false)
   expect(iter([1, 2, 3]).ne(iter([1, 2, 3, 4]))).toEqual(true)
   expect(iter([1, 2, 3]).ne(iter([1, 2]))).toEqual(true)
-  expect(iter([1, 2, 3]).ne(iter([]))).toEqual(true)
+  expect(iter([1, 2, 3]).ne(iter<number>([]))).toEqual(true)
   expect(iter([]).ne(iter([]))).toEqual(false)
 })
 
@@ -448,7 +448,7 @@ test('iter neBy', () => {
   expect(iter([1, 2, 3]).neBy(iter([1, 2, 3]), ne)).toEqual(false)
   expect(iter([1, 2, 3]).neBy(iter([1, 2, 3, 4]), ne)).toEqual(true)
   expect(iter([1, 2, 3]).neBy(iter([1, 2]), ne)).toEqual(true)
-  expect(iter([1, 2, 3]).neBy(iter([]), ne)).toEqual(true)
+  expect(iter([1, 2, 3]).neBy(iter<number>([]), ne)).toEqual(true)
   expect(iter([]).neBy(iter([]), ne)).toEqual(false)
 })
 

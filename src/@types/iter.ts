@@ -99,7 +99,7 @@ export interface IterMethods<T> {
    *
    * @returns A new `Iter` instance containing all elements from the nested iterables in a flat structure.
    */
-  flat(): Iter<IterableFlatted<T>>
+  flat(): FlattedIter<T>
   /**
    * Does something with each element of an `Iter`, passing the value on.
    * When using iterators, you’ll often chain several of them together. 
@@ -476,6 +476,17 @@ export interface IterMethods<T> {
    */
   rev(): Iter<T>
   //#endregion
+
+  [Symbol.toStringTag](): string
+
+  [Symbol.iterator](): Iterator<T>
 }
 
-export type IterableFlatted<T> = T extends Iterable<infer InnerIt> ? IterableFlatted<InnerIt> : T
+export type Flat<T> = T extends Iterable<infer InnerIt> ? Flat<InnerIt> : T
+type IsIterable<T> = T extends Iterable<unknown> ? true : false
+// export type Flat<T> = T extends Iterable<infer U>
+//   ? U extends U
+//   ? IsIterable<U> extends true ? Flat<U> : U
+//   : U
+//   : T
+export type FlattedIter<T> = T extends T ? Iter<Flat<T>> : never

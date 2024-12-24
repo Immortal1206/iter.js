@@ -10,7 +10,7 @@ import {
   isIterable,
   isNullUndefined
 } from './utils'
-import type { IterableFlatted, IterMethods } from './@types/iter'
+import type { Flat, FlattedIter, IterMethods } from './@types/iter'
 
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
@@ -35,7 +35,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   static empty<T>(): Iter<T> {
-    return new Iter(function* () { })
+    return new Iter(function* (): Generator<T> { })
   }
 
   static once<T>(value: T): Iter<T> {
@@ -163,16 +163,16 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
-  flat(): Iter<IterableFlatted<T>> {
+  flat(): FlattedIter<T> {
     const it = this.#generator()
-    function* flatten(iterable: Iterable<T>): Generator<IterableFlatted<T>> {
+    function* flatten(iterable: Iterable<T>): Generator<Flat<T>> {
       for (const value of iterable) {
         if (isIterable<T>(value)) yield* flatten(value)
-        else yield value as IterableFlatted<T>
+        else yield value as Flat<T>
       }
     }
 
-    return new Iter(() => flatten(it))
+    return new Iter(() => flatten(it)) as FlattedIter<T>
   }
 
   flatMap<U>(fn: (value: T) => Iterable<U>): Iter<U> {
@@ -660,7 +660,7 @@ export class Iter<T> implements IterMethods<T> {
 
   // #endregion
 
-  private [Symbol.toStringTag](): string {
+  [Symbol.toStringTag](): string {
     return 'Iter'
   }
 
@@ -671,15 +671,15 @@ export class Iter<T> implements IterMethods<T> {
 
 /**
  * Creates an `Iter` object from the given value.
- * If no value is given, returns an empty `Iter`.
+ * If no value or `null` is given, returns an empty `Iter`.
  * If the value is an iterable, returns an `Iter` that yields each value from the iterable.
  * If the value is any other type, returns an `Iter` that yields the value once.
  * 
  * @param value - The value to convert to an `Iter`, which may be an iterable, or a single value.
  * @returns An `Iter` object that yields the values from the given value.
  */
-export const iter = <T = unknown>(value?: T | Iterable<T>): Iter<T> => {
-  if (value === undefined) return Iter.empty()
+export const iter = <T = unknown>(value?: T | Iterable<T> | null): Iter<T> => {
+  if (isNullUndefined(value)) return Iter.empty()
   if (isIterable<T>(value)) return Iter.fromIterable(value)
   return Iter.once(value)
 }

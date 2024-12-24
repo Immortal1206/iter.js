@@ -75,7 +75,10 @@ npm install lazy-iter.js
 
 * <span id="iter">iter</span> :: \<T>(iterable: Iterable\<T>) => Iter\<T>
 
-  Create an `Iter` object.
+  Creates an `Iter` object from the given value.<br>
+  If no value or `null` is given, returns an empty `Iter`.<br>
+  If the value is an iterable, returns an `Iter` that yields each value from the iterable.<br>
+  If the value is any other type, returns an `Iter` that yields the value once.
 
 * <span id="repeat">repeat</span> :: \<T>(value: T | (() => T)) => Iter\<T>
 
@@ -138,7 +141,7 @@ npm install lazy-iter.js
 * <span id="filterMap">filterMap</span> :: \<U>(fn: (value: T) => U | undefined | null | Maybe\<U>) => Iter\<U>
 
   Filter and map the values in the current `Iter` using the provided function.<br>
-  The filter function takes a value of type `T` and returns a value of type `U | undefined | null | Maybe\<U>`.<br>
+  The filter function takes a value of type `T` and returns a value of type `U | undefined | null | Maybe<U>`.<br>
   The resulting iterator will only contain the values where the filter function returns a non-`null`/`undefined` value.<br>
   If the filter function returns a `Maybe`, the resulting iterator will only contain the values where the filter function returns a `Just` value.<br>
 
@@ -146,7 +149,7 @@ npm install lazy-iter.js
 
   Maps each value of the current `Iter` to an `Iter` using the given function and flattens the result.
 
-* <span id="flat">flat</span> :: () => Iter\<IterableFlatted\<T>>
+* <span id="flat">flat</span> :: () => FlattedIter\<T>
 
   Flattens nested iterables within the current `Iter`.
 
