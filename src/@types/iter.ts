@@ -41,7 +41,7 @@ export interface IterMethods<T> {
   cycle(): Iter<T>
   /**
    * Removes all but the first of consecutive duplicate elements in the `Iter`.
-   * Duplicates are detected using deep equality for comparison.
+   * Duplicates are detected using deep equality.
    *
    * @returns A new `Iter` that yields only the first occurrence of each consecutive duplicate value.
    */

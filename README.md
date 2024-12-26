@@ -118,7 +118,7 @@ npm install lazy-iter.js
 * <span id="dedup">dedup</span> :: () => Iter\<T>
 
   Removes all but the first of consecutive duplicate elements in the `Iter`.<br>
-  Duplicates are detected using deep equality for comparison.
+  Duplicates are detected using deep equality.
 
 * <span id="dedupBy">dedupBy</span> :: (sameBucket: (a: T, b: T) => boolean) => Iter\<T>
 
