@@ -5,12 +5,13 @@ import {
   assertInteger,
   assertNonNegative,
   assertNonZero,
+  equal,
   id,
   isFunction,
   isIterable,
   isNullUndefined
 } from './utils'
-import type { Flat, FlattedIter, IterMethods } from './@types/iter'
+import type { /* Flat, */ FlatIterable, FlattedIter, IterMethods } from './@types/iter'
 
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
@@ -104,7 +105,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   dedup(): Iter<T> {
-    return this.dedupBy(Object.is)
+    return this.dedupBy(equal)
   }
 
   dedupBy(sameBucket: (a: T, b: T) => boolean): Iter<T> {
@@ -163,16 +164,20 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
-  flat(): FlattedIter<T> {
+  flat<D extends number = 1>(depth: D = 1 as D): FlattedIter<T, D> {
+    assertNonNegative(depth, 'flat')
+    assertNonZero(depth, 'flat')
+    assertInteger(depth, 'flat')
+
     const it = this.#generator()
-    function* flatten(iterable: Iterable<T>): Generator<Flat<T>> {
+    function* flatten(iterable: Iterable<T>, depthLeft: number): Generator<FlatIterable<T, D>> {
       for (const value of iterable) {
-        if (isIterable<T>(value)) yield* flatten(value)
-        else yield value as Flat<T>
+        if (depthLeft > 0 && isIterable<T>(value)) yield* flatten(value, depthLeft - 1)
+        else yield value as FlatIterable<T, D>
       }
     }
 
-    return new Iter(() => flatten(it)) as FlattedIter<T>
+    return new Iter(() => flatten(it, depth))
   }
 
   flatMap<U>(fn: (value: T) => Iterable<U>): Iter<U> {
@@ -476,7 +481,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   eq(other: Iter<T>): boolean {
-    return this.eqBy(other, Object.is)
+    return this.eqBy(other, equal)
   }
 
   eqBy(other: Iter<T>, fn: (a: T, b: T) => boolean): boolean {
@@ -582,7 +587,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   ne(other: Iter<T>): boolean {
-    return this.neBy(other, (a, b) => !Object.is(a, b))
+    return this.neBy(other, (a, b) => !equal(a, b))
   }
 
   neBy(other: Iter<T>, fn: (a: T, b: T) => boolean): boolean {

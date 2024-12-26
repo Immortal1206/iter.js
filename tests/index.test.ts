@@ -1,6 +1,41 @@
 import { just, nothing } from 'error-null-handle'
 import iter, { repeat, type Iter } from '../src/index'
-import { id } from '../src/utils'
+import { equal, id } from '../src/utils'
+
+test('equal', () => {
+  expect(equal(iter([1, 2, 3]), iter([1, 2, 3]))).toEqual(true)
+  expect(equal(iter([1, 2, 3]), iter([1, 2]))).toEqual(false)
+
+  expect(equal({ foo: 'bar' }, { foo: 'bar' })).toEqual(true)
+  expect(equal({ foo: 'bar' }, { foo: 'baz' })).toEqual(false)
+
+  expect(equal([1, 2, 3], [1, 2, 3])).toEqual(true)
+  expect(equal([1, 2, 3], [1, 2])).toEqual(false)
+
+  expect(equal(new Set([1, 2, 3]), new Set([1, 2, 3]))).toEqual(true)
+  expect(equal(new Set([1, 2, 3]), new Set([1, 2]))).toEqual(false)
+
+  expect(equal(new Map([[1, 2], [3, 4]]), new Map([[1, 2], [3, 4]]))).toEqual(true)
+  expect(equal(new Map([[1, 2], [3, 4]]), new Map([[1, 2], [3, 5]]))).toEqual(false)
+
+  expect(equal(new Error('foo'), new Error('foo'))).toEqual(true)
+  expect(equal(new Error('foo'), new Error('bar'))).toEqual(false)
+
+  expect(equal(new Uint16Array([1, 2, 3]), new Uint16Array([1, 2, 3]))).toEqual(true)
+  expect(equal(new Uint16Array([1, 2, 3]), new Int16Array([1, 2, 3]))).toEqual(false)
+  expect(equal(new Uint16Array([1, 2, 3]), new Uint16Array([1, 2]))).toEqual(false)
+
+  expect(equal(new Date(), new Date())).toEqual(true)
+  expect(equal(new Date(), new Date('2000-01-01'))).toEqual(false)
+
+  expect(equal(/abc/gi, /abc/gi)).toEqual(true)
+  expect(equal(/abc/gi, /abc/g)).toEqual(false)
+
+  expect(equal(NaN, NaN)).toEqual(true)
+  expect(equal(NaN, 0)).toEqual(false)
+
+  expect(equal(Promise.resolve(1), Promise.resolve(1))).toEqual(false)
+})
 
 test('iter Symbol.iterator', () => {
   const it1 = iter([1, 2, 3])[Symbol.iterator]()
@@ -130,9 +165,10 @@ test('iter filterMap', () => {
 test('iter flat', () => {
   expect(iter([1, 2, 3]).flat().toArray()).toEqual([1, 2, 3])
   expect(iter([[1], [2], [3]]).flat().toArray()).toEqual([1, 2, 3])
-  expect(iter([[1, 2], [3, 4]]).flat().toArray()).toEqual([1, 2, 3, 4])
-  expect(iter([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).flat().toArray()).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
-  expect(iter([[[1, 2], iter([3, 4])], iter([[5, 6], [7, 8]])]).flat().toArray()).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+  expect(iter([[[1], [2], [3]]]).flat().toArray()).toEqual([[1], [2], [3]])
+  expect(iter([[[[1], [2], [3]]]]).flat(1).toArray()).toEqual([[[1], [2], [3]]])
+  expect(iter([[[[1], [2], [3]]]]).flat(2).toArray()).toEqual([[1], [2], [3]])
+  expect(iter([[[[1], [2], [3]]]]).flat(3).toArray()).toEqual([1, 2, 3])
 })
 
 test('iter flatMap', () => {

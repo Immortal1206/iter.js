@@ -118,7 +118,7 @@ npm install lazy-iter.js
 * <span id="dedup">dedup</span> :: () => Iter\<T>
 
   Removes all but the first of consecutive duplicate elements in the `Iter`.<br>
-  Duplicates are detected using `Object.is` for comparison.
+  Duplicates are detected using deep equality for comparison.
 
 * <span id="dedupBy">dedupBy</span> :: (sameBucket: (a: T, b: T) => boolean) => Iter\<T>
 
@@ -151,7 +151,7 @@ npm install lazy-iter.js
 
 * <span id="flat">flat</span> :: () => FlattedIter\<T>
 
-  Flattens nested iterables within the current `Iter`.
+  Flattens an iterable to a specified depth.
 
 * <span id="inspect">inspect</span> :: (fn: (value: T) => void) => Iter\<T>
 
@@ -276,7 +276,7 @@ npm install lazy-iter.js
 * <span id="eq">eq</span> :: (other: Iter\<T>) => boolean
 
   Tests if the current `Iter` is equal to the given `Iter`.<br>
-  Two `Iter`s are considered equal if they contain the same elements(tests with `Object.is`) in the same order.
+  Two `Iter`s are considered equal if they contain the same elements(tests with deep equality) in the same order.
 
 * <span id="eqBy">eqBy</span> :: (other: Iter\<T>, fn: (a: T, b: T) => boolean) => boolean
 
@@ -339,7 +339,7 @@ npm install lazy-iter.js
 * <span id="ne">ne</span> :: (item: T): Iter\<T>
 
   Checks if the current `Iter` is not equal to the given `Iter`.<br>
-  Two `Iter`s are considered not equal if they contain different elements (tests with `Object.is`) in the same order,<br>
+  Two `Iter`s are considered not equal if they contain different elements (tests with deep equality) in the same order,<br>
   or if they have different lengths.<br>
 
 * <span id="neBy">neBy</span> :: (other: Iter\<T>, fn: (a: T, b: T) => boolean): boolean

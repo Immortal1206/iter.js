@@ -41,7 +41,7 @@ export interface IterMethods<T> {
   cycle(): Iter<T>
   /**
    * Removes all but the first of consecutive duplicate elements in the `Iter`.
-   * Duplicates are detected using `Object.is` for comparison.
+   * Duplicates are detected using deep equality for comparison.
    *
    * @returns A new `Iter` that yields only the first occurrence of each consecutive duplicate value.
    */
@@ -94,12 +94,11 @@ export interface IterMethods<T> {
    */
   flatMap<U>(fn: (value: T) => Iterable<U>): Iter<U>
   /**
-   * Flattens nested iterables within the current `Iter`.
-   * This method returns a new `Iter` that yields elements from nested iterables in a single, flat sequence.
+   * Flattens an iterable to a specified depth.
    *
-   * @returns A new `Iter` instance containing all elements from the nested iterables in a flat structure.
+   * @returns A new `Iter` instance with the flattened iterable.
    */
-  flat(): FlattedIter<T>
+  flat<D extends number = 1>(depth?: D): FlattedIter<T, D>
   /**
    * Does something with each element of an `Iter`, passing the value on.
    * When using iterators, you’ll often chain several of them together. 
@@ -299,7 +298,7 @@ export interface IterMethods<T> {
   each(fn: (value: T) => void): void
   /**
    * Tests if the current `Iter` is equal to the given `Iter`.
-   * Two `Iter`s are considered equal if they contain the same elements(tests with `Object.is`) in the same order.
+   * Two `Iter`s are considered equal if they contain the same elements(tests with deep equality) in the same order.
    * 
    * @param other - The other `Iter` to compare with.
    * @returns true if the current `Iter` is equal to the given `Iter`, false otherwise.
@@ -388,7 +387,7 @@ export interface IterMethods<T> {
   last(): Maybe<T>
   /**
    * Checks if the current `Iter` is not equal to the given `Iter`.
-   * Two `Iter`s are considered not equal if they contain different elements (tests with `Object.is`) in the same order,
+   * Two `Iter`s are considered not equal if they contain different elements (tests with deep equality) in the same order,
    * or if they have different lengths.
    * 
    * @param other - The other `Iter` to check against.
@@ -482,11 +481,10 @@ export interface IterMethods<T> {
   [Symbol.iterator](): Iterator<T>
 }
 
-export type Flat<T> = T extends Iterable<infer InnerIt> ? Flat<InnerIt> : T
-type IsIterable<T> = T extends Iterable<unknown> ? true : false
-// export type Flat<T> = T extends Iterable<infer U>
-//   ? U extends U
-//   ? IsIterable<U> extends true ? Flat<U> : U
-//   : U
-//   : T
-export type FlattedIter<T> = T extends T ? Iter<Flat<T>> : never
+export type FlatIterable<T, Depth extends number> = {
+  done: T
+  recur: T extends Iterable<infer I>
+  ? FlatIterable<I, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+  : T
+}[Depth extends 0 ? 'done' : /* Depth extends -1 ? 'done' : */ 'recur']
+export type FlattedIter<T, Depth extends number> = Iter<FlatIterable<T, Depth>> 
