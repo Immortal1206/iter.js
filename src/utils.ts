@@ -44,78 +44,150 @@ type TypedArray =
   | BigInt64Array
   | BigUint64Array
 
-const isTypedArray = (v: unknown): v is TypedArray => ArrayBuffer.isView(v) && 'length' in v
-
-export const equal = (a: any, b: any): boolean => {
-  if (a === b) return true
-
-  if (a && b && typeof a == 'object' && typeof b == 'object') {
-    if (a.constructor !== b.constructor) return false
-
-    if (isFunction(a.eq) && isFunction(b.eq)) return a.eq(b) && b.eq(a)
-
-    let length: number
-    if (Array.isArray(a) && Array.isArray(b)) {
-      length = a.length
-      if (length != b.length) return false
-      for (let i = length - 1; i !== -1; i--) {
-        if (!equal(a[i], b[i])) return false
-      }
-      return true
-    }
-
-    if ((a instanceof Map) && (b instanceof Map)) {
-      if (a.size !== b.size) return false
-      for (const i of a.keys()) {
-        if (!b.has(i)) return false
-      }
-      for (const i of a.entries()) {
-        if (!equal(i[1], b.get(i[0]))) return false
-      }
-      return true
-    }
-
-    if ((a instanceof Set) && (b instanceof Set)) {
-      if (a.size !== b.size) return false
-      for (const i of a.values()) {
-        if (!b.has(i)) return false
-      }
-      return true
-    }
-
-    if (isTypedArray(a) && isTypedArray(b)) {
-      length = a.length
-      if (length != b.length) return false
-      for (let i = length - 1; i !== -1; i--) {
-        if (a[i] !== b[i]) return false
-      }
-      return true
-    }
-
-    if (a.constructor === RegExp) {
-      return a.source === b.source && a.flags === b.flags
-    }
-    if (a instanceof Error) return a.name === b.name && a.message === b.message
-    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf()
-    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString()
-
-    if (isObject(a)) {
-      const keys = Object.keys(a)
-      length = keys.length
-      if (length !== Object.keys(b).length) return false
-      for (let i = length - 1; i !== -1; i--) {
-        if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false
-      }
-      for (let i = length - 1; i !== -1; i--) {
-        const key = keys[i]
-        if (!equal(a[key], b[key])) return false
-      }
-      return true
-    }
-
+function equalBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
+  if (buffer1.byteLength !== buffer2.byteLength) {
     return false
   }
 
-  // true if both NaN, false otherwise
-  return a !== a && b !== b
+  const view1 = new Uint8Array(buffer1)
+  const view2 = new Uint8Array(buffer2)
+
+  for (let i = 0; i < view1.length; i++) {
+    if (view1[i] !== view2[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+function equalTypedArrays(arr1: TypedArray, arr2: TypedArray) {
+  if (arr1.length !== arr2.length) {
+    return false
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+function equalDataViews(view1: DataView, view2: DataView) {
+  if (
+    view1.byteOffset !== view2.byteOffset ||
+    view1.byteLength !== view2.byteLength
+  ) {
+    return false
+  }
+
+  for (let i = 0; i < view1.byteLength; i++) {
+    if (view1.getUint8(i) !== view2.getUint8(i)) {
+      return false
+    }
+  }
+  return true
+}
+
+const SHOULD_NOT_COMPARE = [
+  'Promise',
+  'Function',
+  'AsyncFunction',
+  'GeneratorFunction',
+  'AsyncGeneratorFunction',
+  'WeakMap',
+  'WeakSet'
+]
+
+const getTag = (v: unknown) => Object.prototype.toString.call(v).slice(8, -1)
+
+export const equal = (a: any, b: any): boolean => {
+  if (
+    SHOULD_NOT_COMPARE.includes(getTag(a)) ||
+    SHOULD_NOT_COMPARE.includes(getTag(b))
+  ) return false
+
+  if (a === b) return true
+
+  if (typeof a === 'number' && typeof b === 'number') {
+    return Number.isNaN(a) && Number.isNaN(b)
+  }
+
+  if (
+    a === null ||
+    b === null ||
+    typeof a !== 'object' ||
+    typeof b !== 'object'
+  ) {
+    return false
+  }
+
+  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false
+
+  if (isFunction(a.eq) && isFunction(b.eq)) return a.eq(b) && b.eq(a)
+
+  let length: number
+  if (Array.isArray(a) && Array.isArray(b)) {
+    length = a.length
+    if (length != b.length) return false
+    for (let i = length - 1; i !== -1; i--) {
+      if (!equal(a[i], b[i])) return false
+    }
+    return true
+  }
+
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() === b.getTime()
+  }
+
+  if (a instanceof Map && b instanceof Map) {
+    if (a.size !== b.size) return false
+    for (const i of a.keys()) {
+      if (!b.has(i)) return false
+    }
+    for (const i of a.entries()) {
+      if (!equal(i[1], b.get(i[0]))) return false
+    }
+    return true
+  }
+
+  if (a instanceof Set && b instanceof Set) {
+    if (a.size !== b.size) return false
+    for (const i of a.values()) {
+      if (!b.has(i)) return false
+    }
+    return true
+  }
+
+  if (a instanceof ArrayBuffer && b instanceof ArrayBuffer) {
+    return equalBuffers(a, b)
+  }
+
+  if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+    if (a instanceof DataView && b instanceof DataView) {
+      return equalDataViews(a, b)
+    }
+    return equalTypedArrays(a as TypedArray, b as TypedArray)
+  }
+
+  if (a instanceof RegExp && b instanceof RegExp) {
+    return a.source === b.source && a.flags === b.flags
+  }
+
+  if (a instanceof Error && b instanceof Error) {
+    return a.name === b.name && a.message === b.message
+  }
+
+  const keys = Object.keys(a)
+  length = keys.length
+  if (length !== Object.keys(b).length) return false
+  for (let i = length - 1; i !== -1; i--) {
+    if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false
+  }
+  for (let i = length - 1; i !== -1; i--) {
+    const key = keys[i]
+    if (!equal(a[key], b[key])) return false
+  }
+
+  return true
 }

@@ -8,10 +8,11 @@ import {
   equal,
   id,
   isFunction,
+  isIter,
   isIterable,
   isNullUndefined
 } from './utils'
-import type { /* Flat, */ FlatIterable, FlattedIter, IterMethods } from './@types/iter'
+import type { FlatIterable, FlattedIter, IterMethods } from './@types/iter'
 
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
@@ -485,6 +486,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   eqBy(other: Iter<T>, fn: (a: T, b: T) => boolean): boolean {
+    if (!isIter(other)) return false
     const it1 = this.#generator()
     const it2 = other.#generator()
 
@@ -524,27 +526,35 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   groupToMap<K>(keySelector: (value: T) => K): Map<K, Iter<T>> {
-    return this.reduce((acc, value) => {
+    const it = this.#generator()
+    const map = new Map<K, Iter<T>>()
+
+    for (const value of it) {
       const key = keySelector(value)
-      if (acc.has(key)) {
-        acc.set(key, acc.get(key)!.append(value))
+      if (map.has(key)) {
+        map.set(key, map.get(key)!.append(value))
       } else {
-        acc.set(key, Iter.once(value))
+        map.set(key, Iter.once(value))
       }
-      return acc
-    }, new Map<K, Iter<T>>())
+    }
+
+    return map
   }
 
   groupToObject<K extends PropertyKey>(keySelector: (value: T) => K): Record<K, Iter<T>> {
-    return this.reduce((acc, value) => {
+    const it = this.#generator()
+    const obj = {} as Record<K, Iter<T>>
+
+    for (const value of it) {
       const key = keySelector(value)
-      if (acc[key]) {
-        acc[key] = acc[key].append(value)
+      if (obj[key]) {
+        obj[key] = obj[key].append(value)
       } else {
-        acc[key] = Iter.once(value)
+        obj[key] = Iter.once(value)
       }
-      return acc
-    }, {} as Record<K, Iter<T>>)
+    }
+
+    return obj
   }
 
   isUnique(): boolean {
@@ -591,6 +601,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   neBy(other: Iter<T>, fn: (a: T, b: T) => boolean): boolean {
+    if (!isIter(other)) return true
     const it1 = this.#generator()
     const it2 = other.#generator()
 
@@ -665,7 +676,7 @@ export class Iter<T> implements IterMethods<T> {
 
   // #endregion
 
-  [Symbol.toStringTag](): string {
+  get [Symbol.toStringTag](): string {
     return 'Iter'
   }
 

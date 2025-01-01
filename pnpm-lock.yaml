@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   error-null-handle:
-    specifier: ^0.2.0
-    version: 0.2.0
+    specifier: ^0.2.1
+    version: 0.2.1
   tslib:
     specifier: ^2.8.1
     version: 2.8.1
@@ -1273,8 +1273,8 @@ packages:
       is-arrayish: 0.2.1
     dev: true
 
-  /error-null-handle@0.2.0:
-    resolution: {integrity: sha512-LNfouQGKtQuSeX/Z67haHIoSg9sPUaK+NKy6+KGv6DOFgnzNVckFCsZwB7W28pvAyxO7HTOOplyKIOoUeI3J/g==}
+  /error-null-handle@0.2.1:
+    resolution: {integrity: sha512-LEKKT7xFYaXKrVve1i+OvgVYXR4yBfy6RLJCTjANJqP8fGWnBKXFUwxEFpiAQe4/GAcWiNj/ytD1Vxr+T4HuyA==}
     dev: false
 
   /escalade@3.2.0:

@@ -476,7 +476,7 @@ export interface IterMethods<T> {
   rev(): Iter<T>
   //#endregion
 
-  [Symbol.toStringTag](): string
+  get [Symbol.toStringTag](): string
 
   [Symbol.iterator](): Iterator<T>
 }

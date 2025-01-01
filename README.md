@@ -1,4 +1,4 @@
-# iterator that supports lazy evaluation and chain methods
+# immutable iterator that supports lazy evaluation and chain methods
 
 for more infomation about `Maybe`, `Just` and `Nothing`, see [error-null-handle](https://github.com/Immortal1206/error-null-handle)
 

@@ -1,4 +1,5 @@
 import { just, nothing } from 'error-null-handle'
+
 import iter, { repeat, type Iter } from '../src/index'
 import { equal, id } from '../src/utils'
 
@@ -13,17 +14,26 @@ test('equal', () => {
   expect(equal([1, 2, 3], [1, 2])).toEqual(false)
 
   expect(equal(new Set([1, 2, 3]), new Set([1, 2, 3]))).toEqual(true)
+  expect(equal(new Set([1, 2, 3]), new Set([1, 2, 4]))).toEqual(false)
   expect(equal(new Set([1, 2, 3]), new Set([1, 2]))).toEqual(false)
 
   expect(equal(new Map([[1, 2], [3, 4]]), new Map([[1, 2], [3, 4]]))).toEqual(true)
   expect(equal(new Map([[1, 2], [3, 4]]), new Map([[1, 2], [3, 5]]))).toEqual(false)
+  expect(equal(new Map([[1, 2], [3, 4]]), new Map([[1, 2]]))).toEqual(false)
 
   expect(equal(new Error('foo'), new Error('foo'))).toEqual(true)
   expect(equal(new Error('foo'), new Error('bar'))).toEqual(false)
 
   expect(equal(new Uint16Array([1, 2, 3]), new Uint16Array([1, 2, 3]))).toEqual(true)
   expect(equal(new Uint16Array([1, 2, 3]), new Int16Array([1, 2, 3]))).toEqual(false)
+  expect(equal(new Uint16Array([1, 2, 3]), new Uint16Array([1, 2, 4]))).toEqual(false)
   expect(equal(new Uint16Array([1, 2, 3]), new Uint16Array([1, 2]))).toEqual(false)
+
+  expect(equal(new ArrayBuffer(4), new ArrayBuffer(4))).toEqual(true)
+  expect(equal(new ArrayBuffer(4), new ArrayBuffer(8))).toEqual(false)
+
+  expect(equal(new DataView(new ArrayBuffer(4)), new DataView(new ArrayBuffer(4)))).toEqual(true)
+  expect(equal(new DataView(new ArrayBuffer(4)), new DataView(new ArrayBuffer(8)))).toEqual(false)
 
   expect(equal(new Date(), new Date())).toEqual(true)
   expect(equal(new Date(), new Date('2000-01-01'))).toEqual(false)
@@ -35,6 +45,27 @@ test('equal', () => {
   expect(equal(NaN, 0)).toEqual(false)
 
   expect(equal(Promise.resolve(1), Promise.resolve(1))).toEqual(false)
+
+  expect(equal(BigInt(1), BigInt(1))).toEqual(true)
+  expect(equal(BigInt(1), BigInt(2))).toEqual(false)
+  expect(equal(BigInt(1), 1)).toEqual(false)
+
+  expect(equal(Symbol('foo'), Symbol('foo'))).toEqual(false)
+  expect(equal(Symbol.for('foo'), Symbol.for('foo'))).toEqual(true)
+
+  expect(equal(1, 1)).toEqual(true)
+  expect(equal(1, 2)).toEqual(false)
+  expect(equal(Infinity, Infinity)).toEqual(true)
+
+  expect(equal(true, true)).toEqual(true)
+  expect(equal(true, false)).toEqual(false)
+
+  expect(equal(null, null)).toEqual(true)
+  expect(equal(null, undefined)).toEqual(false)
+  expect(equal(undefined, undefined)).toEqual(true)
+
+  expect(equal('foo', 'foo')).toEqual(true)
+  expect(equal('foo', 'bar')).toEqual(false)
 })
 
 test('iter Symbol.iterator', () => {
@@ -537,4 +568,8 @@ test('iter toString', () => {
   expect(iter([1, 2, 3]).toString()).toEqual('Iter { 1, 2, 3 }')
   expect(iter([]).toString()).toEqual('Iter {  }')
   expect(iter(1).toString()).toEqual('Iter { 1 }')
+})
+
+test('Symbol.toStringTag', () => {
+  expect(Object.prototype.toString.call(iter())).toBe('[object Iter]')
 })
