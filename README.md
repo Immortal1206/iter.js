@@ -51,6 +51,7 @@ npm install lazy-iter.js
   * <a href="#nth">nth</a>
   * <a href="#partition">partition</a>
   * <a href="#prepend">prepend</a>
+  * <a href="#range">range</a>
   * <a href="#reduce">reduce</a>
   * <a href="#repeat">repeat</a>
   * <a href="#rev">rev</a>
@@ -84,6 +85,10 @@ npm install lazy-iter.js
 * <span id="repeat">repeat</span> :: \<T>(value: T | (() => T)) => Iter\<T>
 
   Repeat the given value endlessly.
+
+* <span id="range">range</span> :: (config: RangeConfig | number = {}, end?: number, step?: number) => Iter\<number> 
+
+  Generates a sequence of numbers within a specified range.
 
 ### type predicate
 

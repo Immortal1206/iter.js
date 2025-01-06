@@ -1,6 +1,6 @@
 import { just, nothing } from 'error-null-handle'
 
-import iter, { repeat, type Iter } from '../src/index'
+import iter, { range, repeat, type Iter } from '../src/index'
 import { equal, id } from '../src/utils'
 
 test('equal', () => {
@@ -96,6 +96,20 @@ test('iter take', () => {
   expect(iter([1, 2, 3]).take(2).toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).take(5).toArray()).toEqual([1, 2, 3])
   expect(iter([1, 2, 3]).take(0).toArray()).toEqual([])
+})
+
+test('range', () => {
+  expect(range().take(3).toArray()).toEqual([0, 1, 2])
+  expect(range(3).take(3).toArray()).toEqual([3, 4, 5])
+  expect(range(1, 3).toArray()).toEqual([1, 2])
+  expect(range(1, 7, 2).toArray()).toEqual([1, 3, 5])
+  expect(range(1, 7, 3).toArray()).toEqual([1, 4])
+  expect(range({ start: 1, end: 3 }).toArray()).toEqual([1, 2])
+  expect(range({ start: 1, end: 7, step: 2 }).toArray()).toEqual([1, 3, 5])
+  expect(range({ start: 1, end: 7, step: 3 }).toArray()).toEqual([1, 4])
+  expect(range({ start: 3 }).take(3).toArray()).toEqual([3, 4, 5])
+  expect(range({ end: 3 }).take(3).toArray()).toEqual([0, 1, 2])
+  expect(range({ step: 2 }).take(3).toArray()).toEqual([0, 2, 4])
 })
 
 test('iter chain', () => {
@@ -359,6 +373,7 @@ test('iter stepBy', () => {
   expect(iter([1, 2, 3]).stepBy(2).toArray()).toEqual([1, 3])
   expect(iter([1, 2, 3]).stepBy(5).toArray()).toEqual([1])
   expect(iter([1, 2, 3]).stepBy(1).toArray()).toEqual([1, 2, 3])
+  expect(iter([1, 2, 3, 4, 5, 6]).stepBy(2).toArray()).toEqual([1, 3, 5])
   expect(iter([]).stepBy(1).toArray()).toEqual([])
   expect(() => iter().stepBy(0)).toThrow('Expected non-zero in stepBy, but got 0!')
   expect(() => iter().stepBy(-1)).toThrow('Expected non-negative in stepBy, but got -1!')

@@ -724,3 +724,38 @@ export const iter = <T = unknown>(value?: T | Iterable<T> | null): Iter<T> => {
  */
 export const repeat = Iter.repeat
 
+type RangeConfig = {
+  start?: number
+  end?: number
+  step?: number
+}
+/**
+ * Generates a sequence of numbers within a specified range.
+ * 
+ * @param {number | RangeConfig} config - The start of the range or a configuration object.
+ * @param {number} [end] - The end of the range (exclusive).
+ * @param {number} [step] - The step between each number in the range.
+ * @returns {Iter<number>} An `Iter` that yields numbers within the specified range.
+ */
+export function range(): Iter<number>
+export function range(start: number): Iter<number>
+export function range(start: number, end: number): Iter<number>
+export function range(start: number, end: number, step: number): Iter<number>
+export function range(config: RangeConfig): Iter<number>
+export function range(config: RangeConfig | number = {}, end?: number, step?: number): Iter<number> {
+  if (typeof config === 'number') {
+    return range({ start: config, end, step })
+  }
+  const { start = 0, end: endValue = Number.MAX_SAFE_INTEGER, step: s = 1 } = config
+  assertInteger(start, 'range')
+  assertInteger(endValue, 'range')
+  assertInteger(s, 'range')
+  assertNonZero(s, 'range')
+  return new Iter(function* () {
+    let i = start
+    while (i < endValue) {
+      yield i
+      i += s
+    }
+  })
+}
