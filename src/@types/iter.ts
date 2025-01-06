@@ -95,8 +95,11 @@ export interface IterMethods<T> {
   flatMap<U>(fn: (value: T) => Iterable<U>): Iter<U>
   /**
    * Flattens an iterable to a specified depth.
+   * Panics if the depth is not a positive integer.
    *
+   * @param depth - The depth to flatten to, default 1.
    * @returns A new `Iter` instance with the flattened iterable.
+   * @throws {Error} - If the depth is not a positive integer.
    */
   flat<D extends number = 1>(depth?: D): FlattedIter<T, D>
   /**
@@ -204,9 +207,11 @@ export interface IterMethods<T> {
   scan<U>(fn: (acc: U, value: T) => U | null | undefined | Maybe<U>, initial: U): Iter<U>
   /**
    * Skips the first `n` elements of the `Iter` and returns a new `Iter` starting from the (n+1)th element.
+   * Panics if `n` is not a natural integer.
    *
    * @param n - The number of elements to skip.
    * @returns A new `Iter` that starts after the first `n` elements.
+   * @throws {Error} - If `n` is not a natural integer.
    */
   skip(n: number): Iter<T>
   /**
@@ -219,18 +224,35 @@ export interface IterMethods<T> {
   skipWhile(shouldSkip: (value: T) => boolean): Iter<T>
   /**
    * Returns a new `Iter` that yields the elements of the current `Iter` in the given range.
+   * The range is inclusive at the start and exclusive at the end.
+   * Panics if the start index is greater than the end index.
+   * Panics if the start or end index is not a natural integer.
    * 
    * @param start - The start index of the range, inclusive.
    * @param end - The end index of the range, exclusive.
+   * @returns A new `Iter` that yields the elements in the given range.
    * @throws {Error} - If the start index is greater than the end index.
+   * @throws {Error} - If the start or end index is not a natural integer.
    */
   slice(start: number, end: number): Iter<T>
   /**
+   * Creates an `Iter` starting at the start point, but stepping by the given amount at each iteration.
+   * Note the first element of the iterator will always be returned, regardless of the step given.
+   * Panics if the step amount is not a positive integer.
+   * 
+   * @param step - The step amount to use.
+   * @returns A new `Iter` that steps by the given amount.
+   * @throws {Error} - If the step amount is not a positive integer.
+   */
+  stepBy(step: number): Iter<T>
+  /**
    * Takes the first `n` values from the current `Iter`.
    * If the current `Iter` is shorter than `n`, the resulting `Iter` will be shorter than `n`.
+   * Panics if `n` is not a natural integer.
    * 
    * @param n The number of values to take.
    * @returns A new `Iter` instance containing the first `n` values of the current iterable.
+   * @throws {Error} - If `n` is not a natural integer.
    */
   take(n: number): Iter<T>
   /**
@@ -408,9 +430,12 @@ export interface IterMethods<T> {
   neBy(other: Iter<T>, fn: (a: T, b: T) => boolean): boolean
   /**
    * Returns the nth element of the `Iter`, if it exists.
+   * The index is zero-based.
+   * Panics if the index is not a natural integer.
    *
    * @param n - The zero-based index of the element to retrieve.
    * @returns The nth element wrapped in `Just<T>` if it exists, or `Nothing` if the index is out of bounds.
+   * @throws {Error} - If the index is not a natural integer.
    */
   nth(n: number): Maybe<T>
   /**

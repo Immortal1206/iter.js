@@ -389,6 +389,22 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
+  stepBy(step: number): Iter<T> {
+    assertNonNegative(step, 'stepBy')
+    assertNonZero(step, 'stepBy')
+    assertInteger(step, 'stepBy')
+    const it = this.#generator()
+    return new Iter(function* () {
+      let i = 0
+      while (true) {
+        const { value, done } = it.next()
+        if (done) break
+        if (i % step === 0) yield value
+        i++
+      }
+    })
+  }
+
   take(n: number): Iter<T> {
     assertNonNegative(n, 'take')
     assertInteger(n, 'take')

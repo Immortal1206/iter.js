@@ -355,6 +355,15 @@ test('iter slice', () => {
   expect(() => iter().slice(1, 0)).toThrow('Start index must be less than end index!')
 })
 
+test('iter stepBy', () => {
+  expect(iter([1, 2, 3]).stepBy(2).toArray()).toEqual([1, 3])
+  expect(iter([1, 2, 3]).stepBy(5).toArray()).toEqual([1])
+  expect(iter([1, 2, 3]).stepBy(1).toArray()).toEqual([1, 2, 3])
+  expect(iter([]).stepBy(1).toArray()).toEqual([])
+  expect(() => iter().stepBy(0)).toThrow('Expected non-zero in stepBy, but got 0!')
+  expect(() => iter().stepBy(-1)).toThrow('Expected non-negative in stepBy, but got -1!')
+})
+
 test('iter takeWhile', () => {
   expect(iter([1, 2, 3]).takeWhile(value => value < 2).toArray()).toEqual([1])
   expect(iter([1, 2, 3]).takeWhile(value => value < 0).toArray()).toEqual([])

@@ -27,8 +27,6 @@ export function assertNonZero(value: number, name: string): asserts value is num
 
 export const isFunction = (value: unknown): value is (...args: unknown[]) => unknown => typeof value === 'function'
 
-const isObject = (value: unknown): value is Record<PropertyKey, unknown> => Object.prototype.toString.call(value) === '[object Object]'
-
 export const id = <T>(value: T): T => value
 
 type TypedArray =
@@ -91,12 +89,9 @@ function equalDataViews(view1: DataView, view2: DataView) {
 
 const SHOULD_NOT_COMPARE = [
   'Promise',
-  'Function',
-  'AsyncFunction',
-  'GeneratorFunction',
-  'AsyncGeneratorFunction',
   'WeakMap',
-  'WeakSet'
+  'WeakSet',
+  'WeakRef'
 ]
 
 const getTag = (v: unknown) => Object.prototype.toString.call(v).slice(8, -1)
@@ -112,6 +107,8 @@ export const equal = (a: any, b: any): boolean => {
   if (typeof a === 'number' && typeof b === 'number') {
     return Number.isNaN(a) && Number.isNaN(b)
   }
+
+  if (isFunction(a) || isFunction(b)) return false
 
   if (
     a === null ||

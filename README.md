@@ -59,6 +59,7 @@ npm install lazy-iter.js
   * <a href="#skipWhile">skipWhile</a>
   * <a href="#slice">slice</a>
   * <a href="#some">some</a>
+  * <a href="#stepBy">stepBy</a>
   * <a href="#take">take</a>
   * <a href="#takeWhile">takeWhile</a>
   * <a href="#toArray">toArray</a>
@@ -149,9 +150,10 @@ npm install lazy-iter.js
 
   Maps each value of the current `Iter` to an `Iter` using the given function and flattens the result.
 
-* <span id="flat">flat</span> :: () => FlattedIter\<T>
+* <span id="flat">flat</span> :: \<D extends number = 1>(depth?: D): FlattedIter\<T, D>
 
-  Flattens an iterable to a specified depth.
+  Flattens an iterable to a specified depth.<br>
+  Panics if the depth is not a positive integer.
 
 * <span id="inspect">inspect</span> :: (fn: (value: T) => void) => Iter\<T>
 
@@ -213,7 +215,8 @@ npm install lazy-iter.js
 
 * <span id="skip">skip</span> :: (n: number) => Iter\<T>
 
-  Skips the first `n` elements of the `Iter` and returns a new `Iter` starting from the (n+1)th element.
+  Skips the first `n` elements of the `Iter` and returns a new `Iter` starting from the (n+1)th element.<br>
+  Panics if `n` is not a natural integer.
 
 * <span id="skipWhile">skipWhile</span> :: (shouldSkip: (value: T) => boolean) => Iter\<T>
 
@@ -223,11 +226,20 @@ npm install lazy-iter.js
 * <span id="slice">slice</span> :: (start: number, end: number): Iter\<T>
 
   Returns a new `Iter` that yields the elements of the current `Iter` in the given range.
+  Panics if the start index is greater than the end index.<br>
+  Panics if the start or end index is not a natural integer.
+
+* <span id="stepBy">stepBy</span> :: (step: number): Iter\<T>
+
+  Creates an `Iter` starting at the start point, but stepping by the given amount at each iteration.<br>
+  Note the first element of the iterator will always be returned, regardless of the step given.<br>
+  Panics if the step amount is not a positive integer.
 
 * <span id="take">take</span> :: (n: number) => Iter\<T>
 
   Takes the first `n` values from the current `Iter`.<br>
-  If the current `Iter` is shorter than `n`, the resulting `Iter` will be shorter than `n`.
+  If the current `Iter` is shorter than `n`, the resulting `Iter` will be shorter than `n`.<br>
+  Panics if `n` is not a natural integer.
 
 * <span id="takeWhile">takeWhile</span> :: (shouldTake: (value: T) => boolean) => Iter\<T>
 
