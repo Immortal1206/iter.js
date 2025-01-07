@@ -188,3 +188,22 @@ export const equal = (a: any, b: any): boolean => {
 
   return true
 }
+
+export const enum Position {
+  /**
+   * The first element in the `Iter`.
+   */
+  First = 'first',
+  /**
+   * Neither the first nor the last element in the `Iter`.
+   */
+  Middle = 'middle',
+  /**
+   * The last element in the `Iter`.
+   */
+  Last = 'last',
+  /**
+   * The only element in the `Iter`.
+   */
+  Only = 'only',
+}

@@ -10,7 +10,8 @@ import {
   isFunction,
   isIter,
   isIterable,
-  isNullUndefined
+  isNullUndefined,
+  Position
 } from './utils'
 import type { FlatIterable, FlattedIter, IterMethods } from './@types/iter'
 
@@ -449,6 +450,32 @@ export class Iter<T> implements IterMethods<T> {
     })
   }
 
+  withPosition(): Iter<[Position, T]> {
+    const it = this.#generator()
+    return new Iter(function* () {
+      let { value, done } = it.next()
+      if (done) return
+
+      let next = it.next()
+      if (next.done) {
+        yield [Position.Only, value]
+        return
+      }
+
+      yield [Position.First, value]
+      value = next.value
+
+      while (true) {
+        next = it.next()
+        if (next.done) break
+        yield [Position.Middle, value]
+        value = next.value
+      }
+
+      yield [Position.Last, value]
+    })
+  }
+
   zip<U>(other: Iterable<U>): Iter<[T, U]> {
     const it1 = this.#generator()
     const it2 = other[Symbol.iterator]()
@@ -541,6 +568,12 @@ export class Iter<T> implements IterMethods<T> {
     }
   }
 
+  first(): Maybe<T> {
+    const it = this.#generator()
+    const { value, done } = it.next()
+    return done ? nothing() : just(value)
+  }
+
   groupToMap<K>(keySelector: (value: T) => K): Map<K, Iter<T>> {
     const it = this.#generator()
     const map = new Map<K, Iter<T>>()
@@ -571,6 +604,10 @@ export class Iter<T> implements IterMethods<T> {
     }
 
     return obj
+  }
+
+  isEmpty(): boolean {
+    return this.#generator().next().done!
   }
 
   isUnique(): boolean {
@@ -660,7 +697,7 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   toArray(): T[] {
-    return Array.from(this)
+    return [...this.#generator()]
   }
 
   toMap<K, V>(toEntry: (value: T) => [K, V]): Map<K, V> {
@@ -731,6 +768,8 @@ type RangeConfig = {
 }
 /**
  * Generates a sequence of numbers within a specified range.
+ * Panics if the `start` or `end` is not an integer.
+ * Panics if the `step` is not a positive integer.
  * 
  * @param {number | RangeConfig} config - The start of the range or a configuration object.
  * @param {number} [end] - The end of the range (exclusive).
@@ -751,6 +790,7 @@ export function range(config: RangeConfig | number = {}, end?: number, step?: nu
   assertInteger(endValue, 'range')
   assertInteger(s, 'range')
   assertNonZero(s, 'range')
+  assertNonNegative(s, 'range')
   return new Iter(function* () {
     let i = start
     while (i < endValue) {

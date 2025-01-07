@@ -30,12 +30,14 @@ npm install lazy-iter.js
   * <a href="#flat">flat</a>
   * <a href="#find">find</a>
   * <a href="#findIndex">findIndex</a>
+  * <a href="#first">first</a>
   * <a href="#groupToMap">groupToMap</a>
   * <a href="#groupToObject">groupToObject</a>
   * <a href="#interleave">interleave</a>
   * <a href="#interleaveShortest">interleaveShortest</a>
   * <a href="#inspect">inspect</a>
   * <a href="#intersperse">intersperse</a>
+  * <a href="#isEmpty">isEmpty</a>
   * <a href="#isIter">isIter</a>
   * <a href="#isUnique">isUnique</a>
   * <a href="#isUniqueByKey">isUniqueByKey</a>
@@ -70,6 +72,7 @@ npm install lazy-iter.js
   * <a href="#toString">toString</a>
   * <a href="#unique">unique</a>
   * <a href="#uniqueByKey">uniqueByKey</a>
+  * <a href="#withPosition">withPosition</a>
   * <a href="#zip">zip</a>
   * <a href="#zipWith">zipWith</a>
 
@@ -170,6 +173,14 @@ npm install lazy-iter.js
   It’s more common for inspect() to be used as a debugging tool than to exist in your final code,<br>
   but applications may find it useful in certain situations when errors need to be logged before being discarded.
 
+* <span id="interleave">interleave</span> :: (other: Iterable\<T>): Iter\<T>
+
+  Alternate elements from two iterators until both have run out.
+
+* <span id="interleaveShortest">interleaveShortest</span> :: (other: Iterable\<T>): Iter\<T>
+
+  Alternate elements from two iterators until at least one of them has run out.
+
 * <span id="intersperse">intersperse</span> :: (value: T) => Iter\<T>
 
   Returns a new `Iter` that intersperses the given value between each of the elements of the current `Iter`.<br>
@@ -267,6 +278,16 @@ npm install lazy-iter.js
   The `Iter` is stable, returning the non-duplicate items in the order in which they occur in the adapted `Iter`.<br>
   In a set of duplicate items, the first item encountered is the item retained.<br>
 
+* <span id="withPosition">withPosition</span> :: : Iter<[<a href="#Position">Position</a>, T]>
+
+  Returns an `Iter` that yields tuples containing the position of each element in the original `Iter` and the element itself.<br>
+  The position is represented by the `Position` enum, which includes `First`, `Middle`, `Last`, and `Only`.
+   
+  - If the `Iter` has only one element, it is marked as `Only`.
+  - The first element is marked as `First`.
+  - The last element is marked as `Last`.
+  - All other elements are marked as `Middle`.
+
 * <span id="zip">zip</span> :: \<U>(other: Iterable\<U>) => Iter<[T, U]>
 
   Zip this `Iter` with another iterator.<br>
@@ -315,6 +336,11 @@ npm install lazy-iter.js
   Returns the index of the first element wrapped in `Just<number>` in the `Iter` that satisfies the given predicate function.<br>
   If no element satisfies the predicate, returns `Nothing`.
 
+* <span id="first">first</span> :: : Maybe\<T>
+
+  Returns the first value wrapped in `Just<T>` in the `Iter`.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
 * <span id="groupToMap">groupToMap</span> :: \<K>(keySelector: (value: T) => K): Map\<K, Iter\<T>>
   
   Reduces the `Iter` to a `Map` where the keys are values returned by the given function,<br>
@@ -325,13 +351,9 @@ npm install lazy-iter.js
   Reduces the `Iter` to a `Object` where the keys are values returned by the given function,<br>
   and the values are `Iter`s of the elements that were grouped by the given function.
 
-* <span id="interleave">interleave</span> :: (other: Iterable\<T>): Iter\<T>
+* <span id="isEmpty">isEmpty</span> :: (): boolean
 
-  Alternate elements from two iterators until both have run out.
-
-* <span id="interleaveShortest">interleaveShortest</span> :: (other: Iterable\<T>): Iter\<T>
-
-  Alternate elements from two iterators until at least one of them has run out.
+  Tests if the current `Iter` contains no elements.
 
 * <span id="isUnique">isUnique</span> :: (): boolean
 
@@ -414,3 +436,23 @@ npm install lazy-iter.js
   Usually, `Iter`s iterate from left to right.<br>
   After using rev(), an `Iter` will instead iterate from right to left.<br>
   This is only possible if the `Iter` has an end.
+
+### enum
+
+* <span id="Position">Position</span>
+
+  ```ts
+  const enum Position {
+    First = 'first',
+    Middle = 'middle',
+    Last = 'last',
+    Only = 'only',
+  }
+  ```
+
+  Exported as object `P`. `import { P } from 'lazy-iter.js'`<br>
+
+  - `First`: This is the first element.
+  - `Middle`: This is neither the first nor the last element.
+  - `Last`: This is the last element.
+  - `Only`: This is the only element.

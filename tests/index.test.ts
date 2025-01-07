@@ -1,6 +1,6 @@
 import { just, nothing } from 'error-null-handle'
 
-import iter, { range, repeat, type Iter } from '../src/index'
+import iter, { P, range, repeat, type Iter } from '../src/index'
 import { equal, id } from '../src/utils'
 
 test('equal', () => {
@@ -407,6 +407,13 @@ test('iter uniqueByKey', () => {
   expect(iter([]).uniqueByKey(() => 1).toArray()).toEqual([])
 })
 
+test('iter withPosition', () => {
+  expect(iter([1, 2, 3]).withPosition().toArray()).toEqual([[P.First, 1], [P.Middle, 2], [P.Last, 3]])
+  expect(iter([]).withPosition().toArray()).toEqual([])
+  expect(iter([1]).withPosition().toArray()).toEqual([[P.Only, 1]])
+  expect(iter([1, 2]).withPosition().toArray()).toEqual([[P.First, 1], [P.Last, 2]])
+})
+
 test('iter zip', () => {
   expect(iter([1, 2, 3]).zip([4, 5, 6]).toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
   expect(iter([1, 2, 3]).zip(iter([4, 5, 6])).toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
@@ -480,6 +487,12 @@ test('iter findIndex', () => {
   expect(iter([]).findIndex(() => false)).toEqual(nothing())
 })
 
+test('iter first', () => {
+  expect(iter([1, 2, 3]).first().unwrap()).toEqual(1)
+  expect(iter([]).first().isNothing()).toEqual(true)
+  expect(iter(1).first().unwrap()).toEqual(1)
+})
+
 test('iter groupToMap', () => {
   const parse = (map: Map<number, Iter<number>>) => new Map([...map.entries()].map(([k, v]) => [k, v.toArray()]))
   expect(parse(iter([1, 2, 3, 4, 5, 6]).groupToMap(value => value % 2))).toEqual(new Map([[0, [2, 4, 6]], [1, [1, 3, 5]]]))
@@ -490,6 +503,12 @@ test('iter groupToObject', () => {
   const parse = (obj: Record<string, Iter<number>>) => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v.toArray()]))
   expect(parse(iter([1, 2, 3, 4, 5, 6]).groupToObject(value => value % 2))).toEqual({ 0: [2, 4, 6], 1: [1, 3, 5] })
   expect(parse(iter<number>().groupToObject(value => value % 2))).toEqual({})
+})
+
+test('iter isEmpty', () => {
+  expect(iter([1, 2, 3]).isEmpty()).toBe(false)
+  expect(iter([]).isEmpty()).toBe(true)
+  expect(iter().isEmpty()).toBe(true)
 })
 
 test('iter isUnique', () => {

@@ -1,6 +1,7 @@
 import type { Maybe } from 'error-null-handle'
 
 import type { Iter } from '../iter'
+import type { Position } from '../utils'
 
 export interface IterMethods<T> {
   //#region adapter methods, lazy evaluation
@@ -285,6 +286,18 @@ export interface IterMethods<T> {
    */
   uniqueByKey<K>(fn: (value: T) => K): Iter<T>
   /**
+   * Returns an `Iter` that yields tuples containing the position of each element in the original `Iter` and the element itself.
+   * The position is represented by the `Position` enum, which includes `First`, `Middle`, `Last`, and `Only`.
+   * 
+   * - If the `Iter` has only one element, it is marked as `Only`.
+   * - The first element is marked as `First`.
+   * - The last element is marked as `Last`.
+   * - All other elements are marked as `Middle`.
+   * 
+   * @returns An `Iter` yielding tuples of the form `[Position, T]` for each element.
+   */
+  withPosition(): Iter<[Position, T]>
+  /**
    * Zip this `Iter` with another iterator.
    * This method takes another iterator and returns a new `Iter` that yields tuples of elements from both iterators.
    * The new `Iter` will stop when either iterator stops.
@@ -362,6 +375,13 @@ export interface IterMethods<T> {
    */
   findIndex(fn: (value: T) => boolean): Maybe<number>
   /**
+   * Returns the first value wrapped in `Just<T>` in the `Iter`.
+   * If the `Iter` is empty, returns `Nothing`.
+   *
+   * @returns The first value wrapped in `Just<T>` in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  first(): Maybe<T>
+  /**
    * Reduces the `Iter` to a `Map` where the keys are values returned by the given function,
    * and the values are `Iter`s of the elements that were grouped by the given function.
    * 
@@ -377,6 +397,12 @@ export interface IterMethods<T> {
    * @returns an object where each key is a value of type `K` and each value is an `Iter` of type `Iter<T>`
    */
   groupToObject<K extends PropertyKey>(keySelector: (value: T) => K): Record<K, Iter<T>>
+  /**
+   * Tests if the current `Iter` contains no elements.
+   * 
+   * @returns `true` if the `Iter` is empty, `false` otherwise.
+   */
+  isEmpty(): boolean
   /**
    * Tests if the current `Iter` contains non duplicate elements.
    * Duplicates are detected by by hash and equality.
@@ -512,4 +538,4 @@ export type FlatIterable<T, Depth extends number> = {
   ? FlatIterable<I, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
   : T
 }[Depth extends 0 ? 'done' : /* Depth extends -1 ? 'done' : */ 'recur']
-export type FlattedIter<T, Depth extends number> = Iter<FlatIterable<T, Depth>> 
+export type FlattedIter<T, Depth extends number> = Iter<FlatIterable<T, Depth>>
