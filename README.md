@@ -392,7 +392,7 @@ npm install lazy-iter.js
   If several elements are equally maximum, the **last** element is returned.<br>
   If the `Iter` is empty, returns `Nothing`.
 
-* <span id="maxBy">maxBy</span> :: (fn: (a: T, b: T) => Ordering): Maybe\<T>
+* <span id="maxBy">maxBy</span> :: (fn: (a: T, b: T) => <a href="#Ordering">Ordering</a>): Maybe\<T>
 
   Returns the element that gives the maximum value with respect to the specified comparison function.<br>
   If several elements are equally maximum, the **last** element is returned.<br>
@@ -410,7 +410,7 @@ npm install lazy-iter.js
   If several elements are equally minimum, the **first** element is returned.<br>
   If the `Iter` is empty, returns `Nothing`.
 
-* <span id="minBy">minBy</span> :: (fn: (a: T, b: T) => Ordering) => Maybe\<T>
+* <span id="minBy">minBy</span> :: (fn: (a: T, b: T) => <a href="#Ordering">Ordering</a>) => Maybe\<T>
 
   Returns the element that gives the minimum value from the specified function.<br>
   If several elements are equally minimum, the **first** element is returned.<br>
@@ -497,9 +497,29 @@ npm install lazy-iter.js
   }
   ```
 
-  Exported as object `P`. `import { P } from 'lazy-iter.js'`<br>
+  Exported as object `P` and `Position`. <br>
+  `import { P } from 'lazy-iter.js'`<br>
+  `import { Position } from 'lazy-iter.js'`<br>
 
-  - `First`: This is the first element.
-  - `Middle`: This is neither the first nor the last element.
-  - `Last`: This is the last element.
-  - `Only`: This is the only element.
+  - `P.First`: This is the first element.
+  - `P.Middle`: This is neither the first nor the last element.
+  - `P.Last`: This is the last element.
+  - `P.Only`: This is the only element.
+
+* <span id="Ordering">Ordering</span>
+
+  ```ts
+  const enum Ordering {
+    Less = -1,
+    Equal = 0,
+    Greater = 1,
+  }
+  ```
+
+  Exported as object `O` and `Ordering`. <br>
+  `import { O } from 'lazy-iter.js'`<br>
+  `import { Ordering } from 'lazy-iter.js'`<br>
+
+  - `O.Less`: The first element is less than the secend
+  - `O.Equal`: The two elements are equal.
+  - `O.Greater`: The first element is greater than the second.
