@@ -601,7 +601,7 @@ export type FlattedIter<T, Depth extends number> = Iter<FlatIterable<T, Depth>>
 
 export type Compacted<T> = T extends Maybe<infer U> ? U : T & {}
 
-export type Comparable = number | BigInt | string
+export type Comparable = number | bigint | string
 
 export type RangeConfig = {
   start?: number
