@@ -1,6 +1,6 @@
 {
   "name": "lazy-iter.js",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "immutable iterator that supports lazy evaluation and chain methods",
   "main": "./dist/lib/index.js",
   "module": "./dist/es/index.js",

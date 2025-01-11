@@ -13,6 +13,7 @@ npm install lazy-iter.js
   * <a href="#append">append</a>
   * <a href="#chain">chain</a>
   * <a href="#chunks">chunks</a>
+  * <a href="#compact">compact</a>
   * <a href="#concat">concat</a>
   * <a href="#count">count</a>
   * <a href="#cycle">cycle</a>
@@ -45,9 +46,15 @@ npm install lazy-iter.js
   * <a href="#join">join</a>
   * <a href="#last">last</a>
   * <a href="#map">map</a>
+  * <a href="#max">max</a>
+  * <a href="#maxBy">maxBy</a>
+  * <a href="#maxByKey">maxByKey</a>
   * <a href="#merge">merge</a>
   * <a href="#mergeBy">mergeBy</a>
   * <a href="#mergeByKey">mergeByKey</a>
+  * <a href="#min">min</a>
+  * <a href="#minBy">minBy</a>
+  * <a href="#minByKey">minByKey</a>
   * <a href="#ne">ne</a>
   * <a href="#neBy">neBy</a>
   * <a href="#nth">nth</a>
@@ -115,6 +122,10 @@ npm install lazy-iter.js
 
   Split an `Iter` into chunks of the given size.<br>
   Panics if `size` is not a positive integer.
+
+* <span id="compact">compact</span> :: Iter\<Compacted\<T>>
+
+  Remove all `null` and `undefined` elements from the `Iter`, and unwraps `Maybe` values.
 
 * <span id="concat">concat</span> :: (...others: Iterable\<T>[]) => Iter\<T>
 
@@ -373,6 +384,42 @@ npm install lazy-iter.js
 * <span id="last">last</span> :: () => Maybe\<T>
 
   Returns the last value in the `Iter`, wrapped in `Just<T>`.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="max">max</span> :: () => Maybe\<T>
+
+  Returns the maximum value in the `Iter`.<br>
+  If several elements are equally maximum, the **last** element is returned.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="maxBy">maxBy</span> :: (fn: (a: T, b: T) => Ordering): Maybe\<T>
+
+  Returns the element that gives the maximum value with respect to the specified comparison function.<br>
+  If several elements are equally maximum, the **last** element is returned.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="maxBykey">maxBykey</span> :: (fn: (value: T) => Comparable) => Maybe\<T>
+
+  Returns the element that gives the maximum value from the specified function.<br>
+  If several elements are equally maximum, the **last** element is returned.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="min">min</span> :: () => Maybe\<T>
+
+  Returns the minimum value in the `Iter`.<br>
+  If several elements are equally minimum, the **first** element is returned.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="minBy">minBy</span> :: (fn: (a: T, b: T) => Ordering) => Maybe\<T>
+
+  Returns the element that gives the minimum value from the specified function.<br>
+  If several elements are equally minimum, the **first** element is returned.<br>
+  If the `Iter` is empty, returns `Nothing`.
+
+* <span id="minByKey">minByKey</span> :: (fn: (value: T) => Comparable) => Maybe\<T>
+
+  Returns the element that gives the minimum value from the specified function.<br>
+  If several elements are equally minimum, the **first** element is returned.<br>
   If the `Iter` is empty, returns `Nothing`.
 
 * <span id="ne">ne</span> :: (item: T): Iter\<T>

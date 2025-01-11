@@ -12,6 +12,8 @@
     "declaration": true,
     "strict": true,
     "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true,

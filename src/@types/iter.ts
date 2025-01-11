@@ -1,7 +1,7 @@
 import type { Maybe } from 'error-null-handle'
 
 import type { Iter } from '../iter'
-import type { Position } from '../utils'
+import type { Ordering, Position } from '../utils'
 
 export interface IterMethods<T> {
   //#region adapter methods, lazy evaluation
@@ -27,6 +27,13 @@ export interface IterMethods<T> {
    * @returns An `Iter` of `Iter`s, each containing `size` elements of the original `Iter`.
    */
   chunks(size: number): Iter<Iter<T>>
+  /**
+   * Remove all `null` and `undefined` elements from the `Iter`, and unwraps `Maybe` values.
+   * It is equivalent to calling `filterMap(identity)`.
+   *
+   * @returns A new `Iter` that yields only the non-`null`/`undefined` values and `Just` values unwrapped of the current `Iter`.
+   */
+  compact(): Iter<Compacted<T>>
   /**
    * Concatenates the given iterators to this `Iter`.
    * 
@@ -434,6 +441,58 @@ export interface IterMethods<T> {
    */
   last(): Maybe<T>
   /**
+   * Returns the maximum value in the `Iter`.
+   * If several elements are equally maximum, the **last** element is returned. 
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @returns The maximum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  max(): Maybe<T>
+  /**
+   * Returns the element that gives the maximum value with respect to the specified comparison function.
+   * If several elements are equally maximum, the **last** element is returned.
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @param fn - The comparison function.
+   * @returns The maximum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  maxBy(fn: (a: T, b: T) => Ordering): Maybe<T>
+  /**
+   * Returns the element that gives the maximum value from the specified function.
+   * If several elements are equally maximum, the **last** element is returned.
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @param fn - The keying function.
+   * @returns The maximum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  maxByKey(fn: (value: T) => Comparable): Maybe<T>
+  /**
+   * Returns the minimum value in the `Iter`.
+   * If several elements are equally minimum, the **first** element is returned.
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @returns The minimum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  min(): Maybe<T>
+  /**
+   * Returns the element that gives the minimum value with respect to the specified comparison function.
+   * If several elements are equally minimum, the **first** element is returned.
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @param fn - The comparison function.
+   * @returns The minimum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  minBy(fn: (a: T, b: T) => Ordering): Maybe<T>
+  /**
+   * Returns the element that gives the minimum value from the specified function.
+   * If several elements are equally minimum, the **first** element is returned.
+   * If the `Iter` is empty, returns `Nothing`.
+   * 
+   * @param fn - The keying function.
+   * @returns The minimum value in the `Iter`, or `Nothing` if the `Iter` is empty.
+   */
+  minByKey(fn: (value: T) => Comparable): Maybe<T>
+  /**
    * Checks if the current `Iter` is not equal to the given `Iter`.
    * Two `Iter`s are considered not equal if they contain different elements (tests with deep equality) in the same order,
    * or if they have different lengths.
@@ -539,3 +598,13 @@ export type FlatIterable<T, Depth extends number> = {
   : T
 }[Depth extends 0 ? 'done' : /* Depth extends -1 ? 'done' : */ 'recur']
 export type FlattedIter<T, Depth extends number> = Iter<FlatIterable<T, Depth>>
+
+export type Compacted<T> = T extends Maybe<infer U> ? U : T & {}
+
+export type Comparable = number | BigInt | string
+
+export type RangeConfig = {
+  start?: number
+  end?: number
+  step?: number
+}

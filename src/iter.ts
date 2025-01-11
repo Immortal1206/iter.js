@@ -11,9 +11,17 @@ import {
   isIter,
   isIterable,
   isNullUndefined,
+  Ordering,
   Position
 } from './utils'
-import type { FlatIterable, FlattedIter, IterMethods } from './@types/iter'
+import type {
+  Compacted,
+  Comparable,
+  FlatIterable,
+  FlattedIter,
+  IterMethods,
+  RangeConfig
+} from './@types/iter'
 
 export class Iter<T> implements IterMethods<T> {
   #generator: () => Generator<T>
@@ -85,6 +93,10 @@ export class Iter<T> implements IterMethods<T> {
         yield chunk
       }
     })
+  }
+
+  compact(): Iter<Compacted<T>> {
+    return this.filterMap(id) as Iter<Compacted<T>>
   }
 
   concat(...others: Iterable<T>[]): Iter<T> {
@@ -649,6 +661,67 @@ export class Iter<T> implements IterMethods<T> {
     }
   }
 
+  max(): Maybe<T> {
+    return this.maxBy((a, b) => {
+      if (a > b) return Ordering.Greater
+      if (a < b) return Ordering.Less
+      return Ordering.Equal
+    })
+  }
+
+  maxBy(fn: (a: T, b: T) => Ordering): Maybe<T> {
+    const it = this.#generator()
+    let max = nothing<T>()
+    for (const value of it) {
+      if (
+        max.isNothing() ||
+        [Ordering.Equal, Ordering.Greater].includes(fn(value, max.unwrap()))
+      ) {
+        max = just(value)
+      }
+    }
+    return max
+  }
+
+  maxByKey(fn: (value: T) => Comparable): Maybe<T> {
+    return this.maxBy((a, b) => {
+      const keyA = fn(a)
+      const keyB = fn(b)
+      if (keyA > keyB) return Ordering.Greater
+      if (keyA < keyB) return Ordering.Less
+      return Ordering.Equal
+    })
+  }
+
+  min(): Maybe<T> {
+    return this.minBy((a, b) => {
+      if (a < b) return Ordering.Less
+      if (a > b) return Ordering.Greater
+      return Ordering.Equal
+    })
+  }
+
+  minBy(fn: (a: T, b: T) => Ordering): Maybe<T> {
+    const it = this.#generator()
+    let min = nothing<T>()
+    for (const value of it) {
+      if (min.isNothing() || fn(value, min.unwrap()) === Ordering.Less) {
+        min = just(value)
+      }
+    }
+    return min
+  }
+
+  minByKey(fn: (value: T) => Comparable): Maybe<T> {
+    return this.minBy((a, b) => {
+      const keyA = fn(a)
+      const keyB = fn(b)
+      if (keyA < keyB) return Ordering.Less
+      if (keyA > keyB) return Ordering.Greater
+      return Ordering.Equal
+    })
+  }
+
   ne(other: Iter<T>): boolean {
     return this.neBy(other, (a, b) => !equal(a, b))
   }
@@ -761,11 +834,6 @@ export const iter = <T = unknown>(value?: T | Iterable<T> | null): Iter<T> => {
  */
 export const repeat = Iter.repeat
 
-type RangeConfig = {
-  start?: number
-  end?: number
-  step?: number
-}
 /**
  * Generates a sequence of numbers within a specified range.
  * Panics if the `start` or `end` is not an integer.

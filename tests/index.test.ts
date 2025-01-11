@@ -3,6 +3,8 @@ import { just, nothing } from 'error-null-handle'
 import iter, { P, range, repeat, type Iter } from '../src/index'
 import { equal, id } from '../src/utils'
 
+type TestObj = { a: number, b: number }
+
 test('equal', () => {
   expect(equal(iter([1, 2, 3]), iter([1, 2, 3]))).toEqual(true)
   expect(equal(iter([1, 2, 3]), iter([1, 2]))).toEqual(false)
@@ -124,6 +126,13 @@ test('iter chunks', () => {
   expect(() => iter().chunks(0)).toThrow('Expected non-zero in chunks, but got 0!')
   expect(() => iter().chunks(-1)).toThrow('Expected non-negative in chunks, but got -1!')
   expect(() => iter([1, 2, 3]).chunks(1.1)).toThrow('Expected integer in chunks, but got 1.1!')
+})
+
+test('iter compact', () => {
+  expect(iter().compact().toArray()).toEqual([])
+  expect(iter([1, 2, 3]).compact().toArray()).toEqual([1, 2, 3])
+  expect(iter([1, 2, null, undefined, 3]).compact().toArray()).toEqual([1, 2, 3])
+  expect(iter([1, 2, null, undefined, just(3), nothing<number>()]).compact().toArray()).toEqual([1, 2, 3])
 })
 
 test('iter concat', () => {
@@ -543,6 +552,80 @@ test('iter join', () => {
 test('iter last', () => {
   expect(iter([1, 2, 3]).last()).toEqual(just(3))
   expect(iter([]).last()).toEqual(nothing())
+})
+
+test('iter max', () => {
+  expect(iter([1, 2, 3, 2, 1]).max().unwrap()).toEqual(3)
+  expect(iter(1).max().unwrap()).toEqual(1)
+  expect(iter().max().isNothing()).toBe(true)
+})
+
+test('iter maxBy', () => {
+  const fn = (a: TestObj, b: TestObj) => {
+    if (a.a > b.a) return 1
+    if (a.a < b.a) return -1
+    return 0
+  }
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+    { a: 3, b: 3 },
+    { a: 3, b: 4 },
+    { a: 3, b: 5 },
+    { a: 2, b: 6 },
+  ]).maxBy(fn).unwrap()).toEqual({ a: 3, b: 5 })
+  expect(iter({ a: 1, b: 1 }).maxBy(fn).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter<TestObj>().maxBy(fn).isNothing()).toBe(true)
+})
+
+test('iter maxByKey', () => {
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+    { a: 3, b: 3 },
+    { a: 3, b: 4 },
+    { a: 3, b: 5 },
+    { a: 2, b: 6 },
+  ]).maxByKey(value => value.a).unwrap()).toEqual({ a: 3, b: 5 })
+  expect(iter({ a: 1, b: 1 }).maxByKey(v => v.a).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter<TestObj>().maxByKey(v => v.a).isNothing()).toBe(true)
+})
+
+test('iter min', () => {
+  expect(iter([1, 2, 3, 2, 1]).min().unwrap()).toEqual(1)
+  expect(iter(1).min().unwrap()).toEqual(1)
+  expect(iter().min().isNothing()).toBe(true)
+})
+
+test('iter minBy', () => {
+  const fn = (a: TestObj, b: TestObj) => {
+    if (a.a > b.a) return 1
+    if (a.a < b.a) return -1
+    return 0
+  }
+  expect(iter([
+    { a: 2, b: 2 },
+    { a: 1, b: 1 },
+    { a: 1, b: 3 },
+    { a: 1, b: 4 },
+    { a: 3, b: 5 },
+    { a: 2, b: 6 },
+  ]).minBy(fn).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter({ a: 1, b: 1 }).minBy(fn).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter<TestObj>().minBy(fn).isNothing()).toBe(true)
+})
+
+test('iter minByKey', () => {
+  expect(iter([
+    { a: 1, b: 1 },
+    { a: 2, b: 2 },
+    { a: 1, b: 3 },
+    { a: 1, b: 4 },
+    { a: 3, b: 5 },
+    { a: 2, b: 6 },
+  ]).minByKey(value => value.a).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter({ a: 1, b: 1 }).minByKey(a => a.a).unwrap()).toEqual({ a: 1, b: 1 })
+  expect(iter<TestObj>().minByKey(v => v.a).isNothing()).toBe(true)
 })
 
 test('iter ne', () => {
