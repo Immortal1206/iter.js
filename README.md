@@ -31,6 +31,7 @@ npm install lazy-iter.js
   * <a href="#flat">flat</a>
   * <a href="#find">find</a>
   * <a href="#findIndex">findIndex</a>
+  * <a href="#findMap">findMap</a>
   * <a href="#first">first</a>
   * <a href="#groupToMap">groupToMap</a>
   * <a href="#groupToObject">groupToObject</a>
@@ -346,6 +347,11 @@ npm install lazy-iter.js
 
   Returns the index of the first element wrapped in `Just<number>` in the `Iter` that satisfies the given predicate function.<br>
   If no element satisfies the predicate, returns `Nothing`.
+
+* <span id="findMap">findMap</span> :: \<U>(fn: (value: T) => U | undefined | null | Maybe\<U>): Maybe\<U>
+
+  Applies function to the elements of `Iter` and returns the first valid result.<br>
+  `iter.findMap(fn)` is equivalent to `iter.filterMap(fn).first()`.
 
 * <span id="first">first</span> :: : Maybe\<T>
 

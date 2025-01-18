@@ -90,11 +90,18 @@ test('iter toArray', () => {
 })
 
 test('iter append', () => {
+  const it = iter([1, 2, 3]).append(4)
+  expect(it.toArray()).toEqual([1, 2, 3, 4])
+  expect(it.toArray()).toEqual([1, 2, 3, 4])
+
   expect(iter([1, 2, 3]).append(4).toArray()).toEqual([1, 2, 3, 4])
   expect(iter().append(1).toArray()).toEqual([1])
 })
 
 test('iter take', () => {
+  const it = iter([1, 2, 3]).take(2)
+  expect(it.toArray()).toEqual([1, 2])
+  expect(it.toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).take(2).toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).take(5).toArray()).toEqual([1, 2, 3])
   expect(iter([1, 2, 3]).take(0).toArray()).toEqual([])
@@ -115,11 +122,19 @@ test('range', () => {
 })
 
 test('iter chain', () => {
+  const it = iter([1, 2, 3]).chain([4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).chain([4, 5, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2, 3]).chain(iter([4, 5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
 })
 
 test('iter chunks', () => {
+  const it = iter([1, 2, 3]).chunks(2)
+  expect(it.toArray().map(chunk => chunk.toArray())).toEqual([[1, 2], [3]])
+  expect(it.toArray().map(chunk => chunk.toArray())).toEqual([[1, 2], [3]])
+
   expect(iter([1, 2, 3]).chunks(2).toArray().map(chunk => chunk.toArray())).toEqual([[1, 2], [3]])
   expect(iter([1, 2, 3]).chunks(5).toArray().map(chunk => chunk.toArray())).toEqual([[1, 2, 3]])
   expect(iter([]).chunks(1).toArray()).toEqual([])
@@ -129,6 +144,10 @@ test('iter chunks', () => {
 })
 
 test('iter compact', () => {
+  const it = iter([1, 2, null, undefined, 3]).compact()
+  expect(it.toArray()).toEqual([1, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3])
+
   expect(iter().compact().toArray()).toEqual([])
   expect(iter([1, 2, 3]).compact().toArray()).toEqual([1, 2, 3])
   expect(iter([1, 2, null, undefined, 3]).compact().toArray()).toEqual([1, 2, 3])
@@ -136,24 +155,40 @@ test('iter compact', () => {
 })
 
 test('iter concat', () => {
+  const it = iter([1, 2, 3]).concat([4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).concat([4, 5, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2, 3]).concat(iter([4, 5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2]).concat([3, 4], iter([5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
 })
 
 test('iter cycle', () => {
+  const it = iter([1, 2, 3]).cycle().take(4)
+  expect(it.toArray()).toEqual([1, 2, 3, 1])
+  expect(it.toArray()).toEqual([1, 2, 3, 1])
+
   expect(iter([1, 2, 3]).cycle().take(2).toArray()).toEqual([1, 2])
   expect(iter([1, 2, 3]).cycle().take(5).toArray()).toEqual([1, 2, 3, 1, 2])
   expect(iter([1, 2, 3]).cycle().take(10).toArray()).toEqual([1, 2, 3, 1, 2, 3, 1, 2, 3, 1])
 })
 
 test('iter dedup', () => {
+  const it = iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedup()
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+
   expect(iter([1, 2, 3, 1, 2, 3]).dedup().toArray()).toEqual([1, 2, 3, 1, 2, 3])
   expect(iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedup().toArray()).toEqual([1, 2, 3, 2, 3])
   expect(iter([]).dedup().toArray()).toEqual([])
 })
 
 test('iter dedupBy', () => {
+  const it = iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedupBy((a, b) => a === b)
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+
   expect(iter([1, 2, 3, 1, 2, 3]).dedupBy((a, b) => a === b).toArray()).toEqual([1, 2, 3, 1, 2, 3])
   expect(iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedupBy((a, b) => a === b).toArray()).toEqual([1, 2, 3, 2, 3])
   expect(iter([]).dedupBy((a, b) => a === b).toArray()).toEqual([])
@@ -176,6 +211,10 @@ test('iter dedupBy', () => {
 })
 
 test('iter dedupByKey', () => {
+  const it = iter([1, 2, 2, 2, 3, 2, 2, 3, 3]).dedupByKey(id)
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3, 2, 3])
+
   expect(iter([
     { a: 1, b: 1 },
     { a: 2, b: 1 },
@@ -195,10 +234,19 @@ test('iter dedupByKey', () => {
 })
 
 test('iter enumerate', () => {
+  const it = iter([1, 2, 3]).enumerate()
+  expect(it.toArray()).toEqual([[0, 1], [1, 2], [2, 3]])
+  expect(it.toArray()).toEqual([[0, 1], [1, 2], [2, 3]])
+
   expect(iter([1, 2, 3]).enumerate().toArray()).toEqual([[0, 1], [1, 2], [2, 3]])
 })
 
 test('iter filter', () => {
+  const it = iter([1, 2, 3, undefined, null]).filter(v => typeof v === 'number')
+  expect(it.toArray()).toEqual([1, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3])
+
+  expect(iter([1, 2, 3, undefined, null]).filter(v => typeof v === 'number').toArray()).toEqual([1, 2, 3])
   expect(iter([1, 2, 3]).filter(value => value % 2 === 0).toArray()).toEqual([2])
   expect(iter([1, 2, 3]).filter(value => value % 2 === 1).toArray()).toEqual([1, 3])
   expect(iter([1, 2, 3]).filter(() => false).toArray()).toEqual([])
@@ -206,6 +254,10 @@ test('iter filter', () => {
 })
 
 test('iter filterMap', () => {
+  const it = iter([1, 2, 3]).filterMap(value => value % 2 === 0 ? value : undefined)
+  expect(it.toArray()).toEqual([2])
+  expect(it.toArray()).toEqual([2])
+
   expect(iter([1, 2, 3]).filterMap(value => value % 2 === 0 ? value : undefined).toArray()).toEqual([2])
   expect(iter([1, 2, 3]).filterMap(value => value % 2 === 1 ? value : undefined).toArray()).toEqual([1, 3])
   expect(iter([1, 2, 3]).filterMap(() => undefined).toArray()).toEqual([])
@@ -217,6 +269,10 @@ test('iter filterMap', () => {
 })
 
 test('iter flat', () => {
+  const it = iter([1, [2, 3], [[4, 5], 6]]).flat(2)
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).flat().toArray()).toEqual([1, 2, 3])
   expect(iter([[1], [2], [3]]).flat().toArray()).toEqual([1, 2, 3])
   expect(iter([[[1], [2], [3]]]).flat().toArray()).toEqual([[1], [2], [3]])
@@ -226,11 +282,19 @@ test('iter flat', () => {
 })
 
 test('iter flatMap', () => {
+  const it = iter([1, 2, 3]).flatMap(value => iter([value, value * 2]))
+  expect(it.toArray()).toEqual([1, 2, 2, 4, 3, 6])
+  expect(it.toArray()).toEqual([1, 2, 2, 4, 3, 6])
+
   expect(iter([1, 2, 3]).flatMap(value => iter([value, value * 2])).toArray()).toEqual([1, 2, 2, 4, 3, 6])
   expect(iter([1, 2, 3]).flatMap(value => [value, value * 2]).toArray()).toEqual([1, 2, 2, 4, 3, 6])
 })
 
 test('iter inspect', () => {
+  const it = iter([1, 2]).inspect(console.log)
+  expect(it.toArray()).toEqual([1, 2])
+  expect(it.toArray()).toEqual([1, 2])
+
   const values: number[] = []
   iter([1, 2, 3]).inspect(value => values.push(value)).toArray()
   expect(values).toEqual([1, 2, 3])
@@ -244,6 +308,10 @@ test('iter inspect', () => {
 })
 
 test('iter interleave', () => {
+  const it = iter([1, 2, 3]).interleave([4, 5, 6, 7])
+  expect(it.toArray()).toEqual([1, 4, 2, 5, 3, 6, 7])
+  expect(it.toArray()).toEqual([1, 4, 2, 5, 3, 6, 7])
+
   expect(iter([1, 2, 3]).interleave([4, 5, 6, 7]).toArray()).toEqual([1, 4, 2, 5, 3, 6, 7])
   expect(iter([1, 2, 3]).interleave([4, 5]).toArray()).toEqual([1, 4, 2, 5, 3])
   expect(iter([1, 2, 3]).interleave([4, 5, 6]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
@@ -252,6 +320,10 @@ test('iter interleave', () => {
 })
 
 test('iter interleaveShortest', () => {
+  const it = iter([1, 2, 3]).interleaveShortest([4, 5, 6, 7, 8])
+  expect(it.toArray()).toEqual([1, 4, 2, 5, 3, 6])
+  expect(it.toArray()).toEqual([1, 4, 2, 5, 3, 6])
+
   expect(iter([1, 2, 3]).interleaveShortest([4, 5, 6, 7, 8]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
   expect(iter([1, 2, 3, 6]).interleaveShortest([4, 5]).toArray()).toEqual([1, 4, 2, 5])
   expect(iter([1, 2, 3]).interleaveShortest([4, 5, 6]).toArray()).toEqual([1, 4, 2, 5, 3, 6])
@@ -260,18 +332,30 @@ test('iter interleaveShortest', () => {
 })
 
 test('iter intersperse', () => {
+  const it = iter([1, 2, 3]).intersperse(0)
+  expect(it.toArray()).toEqual([1, 0, 2, 0, 3])
+  expect(it.toArray()).toEqual([1, 0, 2, 0, 3])
+
   expect(iter([1, 2, 3]).intersperse(0).toArray()).toEqual([1, 0, 2, 0, 3])
   expect(iter<number>([]).intersperse(0).toArray()).toEqual([])
   expect(iter([1]).intersperse(0).toArray()).toEqual([1])
 })
 
 test('iter map', () => {
+  const it = iter([1, 2, 3]).map(value => value * 2)
+  expect(it.toArray()).toEqual([2, 4, 6])
+  expect(it.toArray()).toEqual([2, 4, 6])
+
   expect(iter([1, 2, 3]).map(value => value * 2).toArray()).toEqual([2, 4, 6])
   expect(iter([1, 2, 3]).map(() => 0).toArray()).toEqual([0, 0, 0])
   expect(iter([]).map(() => 0).toArray()).toEqual([])
 })
 
 test('iter merge', () => {
+  const it = iter([1, 2, 3]).merge([4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).merge([4, 5, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2, 3]).merge(iter([4, 5, 6])).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 3, 5]).merge([2, 4, 6]).toArray()).toEqual([1, 2, 3, 4, 5, 6])
@@ -281,6 +365,10 @@ test('iter merge', () => {
 })
 
 test('iter mergeBy', () => {
+  const it = iter([1, 2, 3]).mergeBy([4, 5, 6], (a, b) => a < b)
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).mergeBy([4, 5, 6], (a, b) => a < b).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 3, 5]).mergeBy([2, 4, 6], (a, b) => a < b).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2, 3]).mergeBy([], (a, b) => a < b).toArray()).toEqual([1, 2, 3])
@@ -303,6 +391,10 @@ test('iter mergeBy', () => {
 })
 
 test('iter mergeByKey', () => {
+  const it = iter([1, 2, 3]).mergeByKey([4, 5, 6], id)
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+  expect(it.toArray()).toEqual([1, 2, 3, 4, 5, 6])
+
   expect(iter([1, 2, 3]).mergeByKey([4, 5, 6], id).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 3, 5]).mergeByKey([2, 4, 6], id).toArray()).toEqual([1, 2, 3, 4, 5, 6])
   expect(iter([1, 2, 3]).mergeByKey([], id).toArray()).toEqual([1, 2, 3])
@@ -325,6 +417,10 @@ test('iter mergeByKey', () => {
 })
 
 test('iter prepend', () => {
+  const it = iter([1, 2, 3]).prepend(0)
+  expect(it.toArray()).toEqual([0, 1, 2, 3])
+  expect(it.toArray()).toEqual([0, 1, 2, 3])
+
   expect(iter([1, 2, 3]).prepend(0).toArray()).toEqual([0, 1, 2, 3])
   expect(iter().prepend(0).toArray()).toEqual([0])
 })
@@ -335,6 +431,10 @@ test('iter repeat', () => {
 })
 
 test('iter scan', () => {
+  const it = iter([1, 2, 3]).scan((acc, value) => acc + value, 0)
+  expect(it.toArray()).toEqual([1, 3, 6])
+  expect(it.toArray()).toEqual([1, 3, 6])
+
   expect(iter([1, 2, 3]).scan((acc, value) => acc + value, 0).toArray()).toEqual([1, 3, 6])
   expect(iter([]).scan((acc, value) => acc + value, 0).toArray()).toEqual([])
   expect(iter([1, 2, 3]).scan((acc, value) => {
@@ -352,6 +452,10 @@ test('iter scan', () => {
 })
 
 test('iter skip', () => {
+  const it = iter([1, 2, 3]).skip(2)
+  expect(it.toArray()).toEqual([3])
+  expect(it.toArray()).toEqual([3])
+
   expect(iter([1, 2, 3]).skip(2).toArray()).toEqual([3])
   expect(iter([1, 2, 3]).skip(5).toArray()).toEqual([])
   expect(iter([1, 2, 3]).skip(0).toArray()).toEqual([1, 2, 3])
@@ -360,6 +464,10 @@ test('iter skip', () => {
 })
 
 test('iter skipWhile', () => {
+  const it = iter([1, 2, 3]).skipWhile(value => value < 2)
+  expect(it.toArray()).toEqual([2, 3])
+  expect(it.toArray()).toEqual([2, 3])
+
   expect(iter([1, 2, 3]).skipWhile(value => value < 2).toArray()).toEqual([2, 3])
   expect(iter([1, 2, 3]).skipWhile(value => value < 0).toArray()).toEqual([1, 2, 3])
   expect(iter([]).skipWhile(() => true).toArray()).toEqual([])
@@ -368,6 +476,10 @@ test('iter skipWhile', () => {
 })
 
 test('iter slice', () => {
+  const it = iter([1, 2, 3]).slice(1, 2)
+  expect(it.toArray()).toEqual([2])
+  expect(it.toArray()).toEqual([2])
+
   expect(iter([1, 2, 3]).slice(1, 2).toArray()).toEqual([2])
   expect(iter([1, 2, 3]).slice(0, 0).toArray()).toEqual([])
   expect(iter([1, 2, 3]).slice(0, 1).toArray()).toEqual([1])
@@ -379,6 +491,10 @@ test('iter slice', () => {
 })
 
 test('iter stepBy', () => {
+  const it = iter([1, 2, 3]).stepBy(2)
+  expect(it.toArray()).toEqual([1, 3])
+  expect(it.toArray()).toEqual([1, 3])
+
   expect(iter([1, 2, 3]).stepBy(2).toArray()).toEqual([1, 3])
   expect(iter([1, 2, 3]).stepBy(5).toArray()).toEqual([1])
   expect(iter([1, 2, 3]).stepBy(1).toArray()).toEqual([1, 2, 3])
@@ -389,6 +505,10 @@ test('iter stepBy', () => {
 })
 
 test('iter takeWhile', () => {
+  const it = iter([1, 2, 3]).takeWhile(value => value < 2)
+  expect(it.toArray()).toEqual([1])
+  expect(it.toArray()).toEqual([1])
+
   expect(iter([1, 2, 3]).takeWhile(value => value < 2).toArray()).toEqual([1])
   expect(iter([1, 2, 3]).takeWhile(value => value < 0).toArray()).toEqual([])
   expect(iter([]).takeWhile(() => true).toArray()).toEqual([])
@@ -397,6 +517,10 @@ test('iter takeWhile', () => {
 })
 
 test('iter unique', () => {
+  const it = iter([1, 2, 3, 1, 2, 3]).unique()
+  expect(it.toArray()).toEqual([1, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3])
+
   expect(iter([1, 2, 3, 1, 2, 3]).unique().toArray()).toEqual([1, 2, 3])
   expect(iter([1, 2, 3, 1, 2, 3, 4]).unique().toArray()).toEqual([1, 2, 3, 4])
   expect(iter([1, 2, 3, 1, 2, 3, 4, 1, 2, 3]).unique().toArray()).toEqual([1, 2, 3, 4])
@@ -404,6 +528,10 @@ test('iter unique', () => {
 })
 
 test('iter uniqueByKey', () => {
+  const it = iter([1, 2, 3, 1, 2, 3]).uniqueByKey(id)
+  expect(it.toArray()).toEqual([1, 2, 3])
+  expect(it.toArray()).toEqual([1, 2, 3])
+
   expect(iter([1, 2, 3, 1, 2, 3]).uniqueByKey(value => value).toArray()).toEqual([1, 2, 3])
   expect(iter([
     { a: 1, b: 1 },
@@ -417,6 +545,10 @@ test('iter uniqueByKey', () => {
 })
 
 test('iter withPosition', () => {
+  const it = iter([1, 2, 3]).withPosition()
+  expect(it.toArray()).toEqual([[P.First, 1], [P.Middle, 2], [P.Last, 3]])
+  expect(it.toArray()).toEqual([[P.First, 1], [P.Middle, 2], [P.Last, 3]])
+
   expect(iter([1, 2, 3]).withPosition().toArray()).toEqual([[P.First, 1], [P.Middle, 2], [P.Last, 3]])
   expect(iter([]).withPosition().toArray()).toEqual([])
   expect(iter([1]).withPosition().toArray()).toEqual([[P.Only, 1]])
@@ -424,6 +556,10 @@ test('iter withPosition', () => {
 })
 
 test('iter zip', () => {
+  const it = iter([1, 2, 3]).zip([4, 5, 6])
+  expect(it.toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
+  expect(it.toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
+
   expect(iter([1, 2, 3]).zip([4, 5, 6]).toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
   expect(iter([1, 2, 3]).zip(iter([4, 5, 6])).toArray()).toEqual([[1, 4], [2, 5], [3, 6]])
   expect(iter([1, 2, 3]).zip([]).toArray()).toEqual([])
@@ -433,6 +569,10 @@ test('iter zip', () => {
 })
 
 test('iter zipWith', () => {
+  const it = iter([1, 2, 3]).zipWith([4, 5, 6], (a, b) => a + b)
+  expect(it.toArray()).toEqual([5, 7, 9])
+  expect(it.toArray()).toEqual([5, 7, 9])
+
   expect(iter([1, 2, 3]).zipWith([4, 5, 6], (a, b) => a + b).toArray()).toEqual([5, 7, 9])
   expect(iter([1, 2, 3]).zipWith(iter([4, 5, 6]), (a, b) => a + b).toArray()).toEqual([5, 7, 9])
   expect(iter([1, 2, 3]).zipWith([], (a, b) => a + b).toArray()).toEqual([])
@@ -494,6 +634,17 @@ test('iter findIndex', () => {
   expect(iter([1, 2, 3]).findIndex(value => value === 4)).toEqual(nothing())
   expect(iter([]).findIndex(() => true)).toEqual(nothing())
   expect(iter([]).findIndex(() => false)).toEqual(nothing())
+})
+
+test('iter findMap', () => {
+  expect(iter([1, 2, 3]).findMap(value => value === 2 ? just(value * 2) : nothing()).unwrap()).toEqual(4)
+  expect(iter([1, 2, 3]).findMap(value => value === 4 ? just(value * 2) : nothing()).isNothing()).toBe(true)
+  expect(iter([]).findMap(() => just(1)).isNothing()).toBe(true)
+  expect(iter().findMap(v => v).isNothing()).toBe(true)
+  expect(iter([1, 2, 3]).findMap(v => v === 2 ? v * 2 : null).unwrap()).toEqual(4)
+  expect(iter([1, 2, 3]).findMap(v => v === 4 ? v * 2 : null).isNothing()).toBe(true)
+  expect(iter([1, 2, 3]).findMap(v => v === 2 ? v * 2 : undefined).unwrap()).toEqual(4)
+  expect(iter([1, 2, 3]).findMap(v => v === 4 ? v * 2 : undefined).isNothing()).toBe(true)
 })
 
 test('iter first', () => {

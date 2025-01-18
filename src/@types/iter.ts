@@ -83,6 +83,7 @@ export interface IterMethods<T> {
    * @param fn A predicate function that takes a value of type `T` and returns a boolean.
    * @returns A new `Iter` instance containing only the values where the predicate function returns true.
    */
+  filter<U extends T>(fn: (value: T) => value is U): Iter<U>
   filter(fn: (value: T) => boolean): Iter<T>
   /**
    * Filter and map the values in the current `Iter` using the provided function.
@@ -382,6 +383,14 @@ export interface IterMethods<T> {
    */
   findIndex(fn: (value: T) => boolean): Maybe<number>
   /**
+   * Applies function to the elements of `Iter` and returns the first valid result.
+   * `iter.findMap(fn)` is equivalent to `iter.filterMap(fn).first()`.
+   * 
+   * @param fn A function that takes a value of type `T` and returns a value of type `U | undefined | null | Maybe<U>`.
+   * @returns The first valid result, or `Nothing` if no valid result is found.
+   */
+  findMap<U>(fn: (value: T) => U | undefined | null | Maybe<U>): Maybe<U>
+  /**
    * Returns the first value wrapped in `Just<T>` in the `Iter`.
    * If the `Iter` is empty, returns `Nothing`.
    *
@@ -551,7 +560,7 @@ export interface IterMethods<T> {
    * @param toEntry A function that takes a value of type `T` and returns a tuple of type `[K, V]`.
    * @returns A `Map` containing the entries from the `Iter` converted using the given function.
    */
-  toMap<K, V>(toEntry: (value: T) => [K, V]): Map<K, V>
+  toMap<K, V>(toEntry: (value: T) => readonly [K, V]): Map<K, V>
   /**
    * Returns a new object, mapping each element of the `Iter` to its corresponding entry in the object.
    * The provided function `toEntry` takes a value of type `T` and returns a tuple of type `[K, V]`.
@@ -559,7 +568,7 @@ export interface IterMethods<T> {
    * @param toEntry A function that takes a value of type `T` and returns a tuple of type `[K, V]`.
    * @returns An object containing the entries from the `Iter` converted using the given function.
    */
-  toObject<K extends PropertyKey, V>(toEntry: (value: T) => [K, V]): Record<K, V>
+  toObject<K extends PropertyKey, V>(toEntry: (value: T) => readonly [K, V]): Record<K, V>
   /**
    * Converts the `Iter` to a `Set`.
    * Note that the order of the elements in the resulting `Set` is not guaranteed

@@ -57,17 +57,17 @@ export class Iter<T> implements IterMethods<T> {
 
   // #region adapter methods
   append(item: T): Iter<T> {
-    const it1 = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      yield* it1
+      yield* gen()
       yield item
     })
   }
 
   chain(other: Iterable<T>): Iter<T> {
-    const it1 = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      yield* it1
+      yield* gen()
       yield* other
     })
   }
@@ -76,11 +76,11 @@ export class Iter<T> implements IterMethods<T> {
     assertNonNegative(size, 'chunks')
     assertInteger(size, 'chunks')
     assertNonZero(size, 'chunks')
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let chunk = Iter.empty<T>()
       let len = 0
-      for (const value of it) {
+      for (const value of gen()) {
         chunk = chunk.append(value)
         len += 1
         if (len === size) {
@@ -100,9 +100,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   concat(...others: Iterable<T>[]): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      yield* it
+      yield* gen()
       for (const other of others) {
         yield* other
       }
@@ -123,10 +123,10 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   dedupBy(sameBucket: (a: T, b: T) => boolean): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let prev: T | undefined
-      for (const value of it) {
+      for (const value of gen()) {
         if (prev === undefined || !sameBucket(prev, value)) {
           yield value
           prev = value
@@ -140,20 +140,22 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   enumerate(): Iter<[number, T]> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let i = 0
-      for (const value of it) {
+      for (const value of gen()) {
         yield [i, value]
         i++
       }
     }) as Iter<[number, T]>
   }
 
+  filter<U extends T>(fn: (value: T) => value is U): Iter<U>
+  filter(fn: (value: T) => boolean): Iter<T>
   filter(fn: (value: T) => boolean): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         if (fn(value)) {
           yield value
         }
@@ -162,9 +164,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   filterMap<U>(fn: (value: T) => U | undefined | null | Maybe<U>): Iter<U> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         const result = fn(value)
         if (isNullUndefined(result)) continue
         if (isMaybe<U>(result)) {
@@ -183,7 +185,7 @@ export class Iter<T> implements IterMethods<T> {
     assertNonZero(depth, 'flat')
     assertInteger(depth, 'flat')
 
-    const it = this.#generator()
+    const gen = this.#generator
     function* flatten(iterable: Iterable<T>, depthLeft: number): Generator<FlatIterable<T, D>> {
       for (const value of iterable) {
         if (depthLeft > 0 && isIterable<T>(value)) yield* flatten(value, depthLeft - 1)
@@ -191,13 +193,13 @@ export class Iter<T> implements IterMethods<T> {
       }
     }
 
-    return new Iter(() => flatten(it, depth))
+    return new Iter(() => flatten(gen(), depth))
   }
 
   flatMap<U>(fn: (value: T) => Iterable<U>): Iter<U> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         const result = fn(value)
         yield* result
       }
@@ -205,9 +207,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   inspect(fn: (value: T) => void): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         fn(value)
         yield value
       }
@@ -215,9 +217,11 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   interleave(other: Iterable<T>): Iter<T> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
+    const gen1 = this.#generator
+    const gen2 = other[Symbol.iterator].bind(other)
     return new Iter(function* () {
+      const it1 = gen1()
+      const it2 = gen2()
       let value1 = it1.next()
       let value2 = it2.next()
       while (!value1.done || !value2.done) {
@@ -234,9 +238,11 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   interleaveShortest(other: Iterable<T>): Iter<T> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
+    const gen1 = this.#generator
+    const gen2 = other[Symbol.iterator].bind(other)
     return new Iter(function* () {
+      const it1 = gen1()
+      const it2 = gen2()
       let value1 = it1.next()
       let value2 = it2.next()
       while (!value1.done && !value2.done) {
@@ -249,11 +255,11 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   intersperse(value: T | (() => T)): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     const isFn = isFunction(value)
     return new Iter(function* () {
       let isFirst = true
-      for (const item of it) {
+      for (const item of gen()) {
         if (!isFirst) {
           yield isFn ? value() : value
         }
@@ -264,9 +270,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   map<U>(fn: (value: T) => U): Iter<U> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         yield fn(value)
       }
     })
@@ -277,9 +283,11 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   mergeBy(other: Iterable<T>, isFirst: (a: T, b: T) => boolean): Iter<T> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
+    const gen1 = this.#generator
+    const gen2 = other[Symbol.iterator].bind(other)
     return new Iter(function* () {
+      const it1 = gen1()
+      const it2 = gen2()
       let value1 = it1.next()
       let value2 = it2.next()
       while (!value1.done && !value2.done) {
@@ -323,18 +331,18 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   prepend(item: T): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       yield item
-      yield* it
+      yield* gen()
     })
   }
 
   scan<U>(fn: (acc: U, value: T) => U | null | undefined | Maybe<U>, initial: U): Iter<U> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let acc = initial
-      for (const value of it) {
+      for (const value of gen()) {
         const result = fn(acc, value)
         if (isNullUndefined(result)) break
         if (isMaybe<U>(result)) {
@@ -352,10 +360,10 @@ export class Iter<T> implements IterMethods<T> {
   skip(n: number): Iter<T> {
     assertNonNegative(n, 'skip')
     assertInteger(n, 'skip')
-    const it = this.#generator()
-    let i = 0
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      let i = 0
+      for (const value of gen()) {
         if (i < n) {
           i++
           continue
@@ -366,10 +374,10 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   skipWhile(shouldSkip: (value: T) => boolean): Iter<T> {
-    const it = this.#generator()
-    let skipped = false
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      let skipped = false
+      for (const value of gen()) {
         if (skipped) {
           yield value
           continue
@@ -387,9 +395,10 @@ export class Iter<T> implements IterMethods<T> {
     assertNonNegative(end, 'slice')
     assertInteger(end, 'slice')
     if (start > end) throw new Error('Start index must be less than end index!')
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let i = 0
+      const it = gen()
       while (i < start) {
         it.next()
         i++
@@ -406,9 +415,10 @@ export class Iter<T> implements IterMethods<T> {
     assertNonNegative(step, 'stepBy')
     assertNonZero(step, 'stepBy')
     assertInteger(step, 'stepBy')
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
       let i = 0
+      const it = gen()
       while (true) {
         const { value, done } = it.next()
         if (done) break
@@ -421,8 +431,9 @@ export class Iter<T> implements IterMethods<T> {
   take(n: number): Iter<T> {
     assertNonNegative(n, 'take')
     assertInteger(n, 'take')
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
+      const it = gen()
       for (let i = 0; i < n; i++) {
         const { value, done } = it.next()
         if (done) break
@@ -432,9 +443,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   takeWhile(shouldTake: (value: T) => boolean): Iter<T> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
-      for (const value of it) {
+      for (const value of gen()) {
         if (shouldTake(value)) {
           yield value
         } else {
@@ -449,11 +460,11 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   uniqueByKey<K>(fn: (value: T) => K): Iter<T> {
-    const it = this.#generator()
-    const seen = new Set<K>()
+    const gen = this.#generator
 
     return new Iter(function* () {
-      for (const value of it) {
+      const seen = new Set<K>()
+      for (const value of gen()) {
         const key = fn(value)
         if (seen.has(key)) continue
         seen.add(key)
@@ -463,8 +474,9 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   withPosition(): Iter<[Position, T]> {
-    const it = this.#generator()
+    const gen = this.#generator
     return new Iter(function* () {
+      const it = gen()
       let { value, done } = it.next()
       if (done) return
 
@@ -489,10 +501,12 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   zip<U>(other: Iterable<U>): Iter<[T, U]> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
+    const gen1 = this.#generator
+    const gen2 = other[Symbol.iterator].bind(other)
 
     return new Iter(function* () {
+      const it1 = gen1()
+      const it2 = gen2()
       while (true) {
         const { value: val1, done: done1 } = it1.next()
         const { value: val2, done: done2 } = it2.next()
@@ -505,10 +519,12 @@ export class Iter<T> implements IterMethods<T> {
   }
 
   zipWith<V, U = unknown>(other: Iterable<U>, fn: (a: T, b: U) => V): Iter<V> {
-    const it1 = this.#generator()
-    const it2 = other[Symbol.iterator]()
+    const gen1 = this.#generator
+    const gen2 = other[Symbol.iterator].bind(other)
 
     return new Iter(function* () {
+      const it1 = gen1()
+      const it2 = gen2()
       while (true) {
         const { value: val1, done: done1 } = it1.next()
         const { value: val2, done: done2 } = it2.next()
@@ -578,6 +594,19 @@ export class Iter<T> implements IterMethods<T> {
       if (fn(value)) return just(i)
       i++
     }
+  }
+
+  findMap<U>(fn: (value: T) => U | undefined | null | Maybe<U>): Maybe<U> {
+    for (const value of this.#generator()) {
+      const result = fn(value)
+      if (isNullUndefined(result)) continue
+      if (isMaybe<U>(result)) {
+        if (result.isJust()) return result
+        continue
+      }
+      return just(result)
+    }
+    return nothing()
   }
 
   first(): Maybe<T> {
@@ -773,11 +802,11 @@ export class Iter<T> implements IterMethods<T> {
     return [...this.#generator()]
   }
 
-  toMap<K, V>(toEntry: (value: T) => [K, V]): Map<K, V> {
+  toMap<K, V>(toEntry: (value: T) => readonly [K, V]): Map<K, V> {
     return new Map(this.map(toEntry))
   }
 
-  toObject<K extends PropertyKey, V>(toEntry: (value: T) => [K, V]): Record<K, V> {
+  toObject<K extends PropertyKey, V>(toEntry: (value: T) => readonly [K, V]): Record<K, V> {
     return Object.fromEntries(this.map(toEntry)) as Record<K, V>
   }
 
