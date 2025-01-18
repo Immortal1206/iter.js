@@ -1,6 +1,6 @@
 {
   "name": "lazy-iter.js",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "immutable iterator that supports lazy evaluation and chain methods",
   "main": "./dist/lib/index.js",
   "module": "./dist/es/index.js",
@@ -39,7 +39,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "error-null-handle": "^0.2.2",
+    "error-null-handle": "^0.3.0",
     "tslib": "^2.8.1"
   },
   "files": [
