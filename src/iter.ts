@@ -1,5 +1,4 @@
 import { isMaybe, just, nothing, type Maybe } from 'error-null-handle'
-import { __classPrivateFieldGet, __classPrivateFieldSet } from 'tslib'
 
 import {
   assertInteger,
@@ -800,6 +799,10 @@ export class Iter<T> implements IterMethods<T> {
 
   toArray(): T[] {
     return [...this.#generator()]
+  }
+
+  private toJSON(): T[] {
+    return this.toArray()
   }
 
   toMap<K, V>(toEntry: (value: T) => readonly [K, V]): Map<K, V> {

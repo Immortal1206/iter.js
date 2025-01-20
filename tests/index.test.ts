@@ -826,6 +826,11 @@ test('iter some', () => {
   expect(iter([]).some(() => false)).toEqual(false)
 })
 
+test('iter toJSON', () => {
+  expect(JSON.stringify(iter([1, 2, 3]))).toEqual('[1,2,3]')
+  expect(JSON.stringify(iter([]))).toEqual('[]')
+})
+
 test('iter toMap', () => {
   expect(iter([1, 2, 3]).toMap(value => [value, value * 2])).toEqual(new Map([[1, 2], [2, 4], [3, 6]]))
   expect(iter([]).toMap(() => [1, 2])).toEqual(new Map())
